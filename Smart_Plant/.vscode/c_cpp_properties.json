@@ -10,8 +10,7 @@
             "includePath": [
                 "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/include",
                 "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/src",
-                "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
+                "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/.pio/libdeps/esp32doit-devkit-v1/PubSubClient/src",
                 "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/.pio/libdeps/esp32doit-devkit-v1/DHT sensor library",
@@ -225,6 +224,7 @@
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/FFat/src",
+                "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdate/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdateServer/src",
@@ -242,7 +242,7 @@
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/Ticker/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
-                "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
+                "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
                 "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                 ""
             ],
@@ -251,8 +251,7 @@
                 "path": [
                     "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/include",
                     "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/src",
-                    "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                    "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
+                    "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/.pio/libdeps/esp32doit-devkit-v1/PubSubClient/src",
                     "D:/Data/Learning/University/Year3/Physics/HomeSmartPlant/Smart_Plant/.pio/libdeps/esp32doit-devkit-v1/DHT sensor library",
@@ -466,6 +465,7 @@
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/ESPmDNS/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/Ethernet/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/FFat/src",
+                    "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdate/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/HTTPUpdateServer/src",
@@ -483,7 +483,7 @@
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/Ticker/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
-                    "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
+                    "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
                     "C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                     ""
                 ]
