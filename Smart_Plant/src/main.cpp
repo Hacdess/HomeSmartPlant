@@ -1,11 +1,14 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>      // TLS
 #include <PubSubClient.h>
 #include <DHT.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-// ====================== PIN CONFIG ======================
+// =======================================================
+//                     PIN CONFIG
+// =======================================================
 #define DHTPIN 4
 #define DHTTYPE DHT11
 
@@ -15,34 +18,70 @@
 
 #define BUTTON_PIN 5
 #define BUZZER_PIN 18
+#define RELAY_PUMP 19   // Active HIGH
 
-#define RELAY_PUMP 19  // Active HIGH
-
-// ====================== OBJECTS ======================
+// =======================================================
+//                     OBJECTS
+// =======================================================
 DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// ====================== MQTT & WIFI ======================
+// =======================================================
+//                     WIFI & MQTT CONFIG
+// =======================================================
 const char* ssid = "YOUR_WIFI";
 const char* password = "YOUR_PASSWORD";
 
-const char* mqttServer = "broker.hivemq.com";
-const int mqttPort = 1883;
+const char* mqttServer = "c91c3b64d47444098772381daeb628ea.s1.eu.hivemq.cloud";
+const int mqttPort = 8883;
+
+const char* mqttUser = "mqtt-user";
+const char* mqttPass = "mqtt-password";
+
 const char* deviceID = "esp32_c91c3b64d47444098772381daeb628ea";
 
-WiFiClient espClient;
-PubSubClient client(espClient);
+// =======================================================
+//                     TLS ROOT CERT
+// =======================================================
+const char* root_ca =
+"-----BEGIN CERTIFICATE-----\n"
+"MIIDSjCCAjKgAwIBAgIQRl5NvKPC3DxbhQ36SEs88TANBgkqhkiG9w0BAQsFADA/\n"
+"MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFjAUBgNVBAMT\n"
+"DURTVCBSb290IENBIFgzMB4XDTIwMDkwMTAwMDAwMFoXDTMwMDgyOTIzNTk1OVow\n"
+"PzEkMCIGA1UEChMbRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QgQ28uMRYwFAYDVQQD\n"
+"Ew1EU1QgUm9vdCBDQSBYMzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB\n"
+"AJ0T0U/3sSVDQKp0qKXqQyV2pAonw8rWBVg1SPjz67sV1Nw3pS4o0lS2Vx2jcWc1\n"
+"hlV5PxL2M8xSD1XD4kvp+JaR6R1x7U0EdGDQmL1o0jXP9DD35JtIhXCTITVEWilR\n"
+"vJ6Z0TiQ2jHGhEq+y3OC/YLXTr4Wr9yi5xRngk6VwBEmc6k6R/+qvOB0fOkH1ZZ1\n"
+"p1Zd0NenE2x0RvrRZtGJPD7W82dManIeZDV4mQdlqzTeWY5AvzkdxlIo0NGdiszI\n"
+"gxF5EYh3YOEoTP0TO+GfY+3CX6XfGZV8oPZxC25f6/sOlne342XQI3/OQvPsvPV/\n"
+"Fnf4Idu8LojRxurx8Wc58SUCAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgEGMA8GA1Ud\n"
+"EwEB/wQFMAMBAf8wHQYDVR0OBBYEFMSmc5QwTqHoPazTA/gkGEXUX/MmMA0GCSqG\n"
+"SIb3DQEBCwUAA4IBAQC24HGIcG9H9n1tFoZT3zh0+BTtPlqvGjufH6G+jD/adJzi\n"
+"UTduVdJN9WewtG/XAIN5e8w1sM+d1ZBgU984wgKqeFTig84yYI6FqdtYY4c3SeN5\n"
+"lSRXyoxkBq/Y7W82dManIeZDV4mQdlqzTeWY5AvzkdxlIo0NGdiszI+QwaP42Qik\n"
+"-----END CERTIFICATE-----\n";
 
-// ====================== STATE ======================
+// =======================================================
+//                  SECURE MQTT CLIENT
+// =======================================================
+WiFiClientSecure secureClient;
+PubSubClient client(secureClient);
+
+// =======================================================
+//                  STATE VARIABLES
+// =======================================================
 bool lcdEnabled = true;
 int lastButton = HIGH;
 
-bool pumpAutoEnabled = true;
+bool pumpAutoEnabled = true;   // (Giữ nguyên)
 int soilThreshold = 1800;
 unsigned long lastPumpTime = 0;
 unsigned long pumpInterval = 10000;
 
-// ====================== SENSOR READ ======================
+// =======================================================
+//                 SENSOR READ FUNCTIONS
+// =======================================================
 int readLight() { return analogRead(LIGHT_PIN); }
 int readSoil()  { return analogRead(SOIL_PIN); }
 int readRain()  { return analogRead(RAIN_PIN); }
@@ -50,7 +89,9 @@ int readRain()  { return analogRead(RAIN_PIN); }
 float readTemp() { return dht.readTemperature(); }
 float readHum()  { return dht.readHumidity(); }
 
-// ====================== LCD ======================
+// =======================================================
+//                        LCD
+// =======================================================
 void toggleLCD() {
   int current = digitalRead(BUTTON_PIN);
   if (lastButton == HIGH && current == LOW) {
@@ -77,86 +118,77 @@ void updateLCD() {
   lcd.print(readRain());
 }
 
-// ====================== MQTT CALLBACK ======================
+// =======================================================
+//                 MQTT CALLBACK HANDLER
+// =======================================================
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   String msg = "";
   for (int i = 0; i < length; i++) msg += (char)payload[i];
 
-  Serial.print("[MQTT] Topic: ");
-  Serial.println(topic);
-  Serial.print("[MQTT] Message: ");
-  Serial.println(msg);
+  Serial.printf("[MQTT] %s → %s\n", topic, msg.c_str());
 
-  // ========== LẬP TRÌNH Nhận LỆNH ==========
+  // --- Remote Pump Control ---
   if (String(topic) == String(deviceID) + "/cmd/pump") {
-    if (msg == "ON") {
-      digitalWrite(RELAY_PUMP, HIGH);
-      Serial.println("Pump turned ON via MQTT");
-    } 
-    else if (msg == "OFF") {
-      digitalWrite(RELAY_PUMP, LOW);
-      Serial.println("Pump turned OFF via MQTT");
-    }
+    if (msg == "ON")  digitalWrite(RELAY_PUMP, HIGH);
+    if (msg == "OFF") digitalWrite(RELAY_PUMP, LOW);
   }
 
+  // --- Remote LCD Control ---
   if (String(topic) == String(deviceID) + "/cmd/lcd") {
-    if (msg == "ON") { lcdEnabled = true; lcd.backlight(); }
+    if (msg == "ON")  { lcdEnabled = true;  lcd.backlight(); }
     if (msg == "OFF") { lcdEnabled = false; lcd.noBacklight(); }
   }
 }
 
-// ====================== WIFI & MQTT CONNECT ======================
+// =======================================================
+//                 WIFI + MQTT CONNECT
+// =======================================================
 void connectWiFi() {
-  Serial.print("Connecting WiFi...");
+  Serial.print("Connecting WiFi ");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(300);
     Serial.print(".");
+    delay(300);
   }
-  Serial.println("\nWiFi Connected!");
-  Serial.println(WiFi.localIP());
+  Serial.println(" connected!");
 }
 
 void connectMQTT() {
   while (!client.connected()) {
-    Serial.print("Connecting MQTT...");
-    if (client.connect(deviceID)) {
+    Serial.print("Connecting MQTT... ");
+
+    if (client.connect(deviceID, mqttUser, mqttPass)) {
       Serial.println("connected!");
 
-      // SUBSCRIBE commands
       client.subscribe((String(deviceID) + "/cmd/#").c_str());
-
-      // Announce online
       client.publish((String(deviceID) + "/status").c_str(), "online");
 
     } else {
-      Serial.print("failed, code=");
-      Serial.println(client.state());
+      Serial.printf("fail (%d)\n", client.state());
       delay(2000);
     }
   }
 }
 
-// ====================== MQTT PUBLISH ======================
+// =======================================================
+//                PUBLISH SENSOR DATA
+// =======================================================
 void sendSensorsMQTT() {
-  String light = String(readLight());
-  String soil = String(readSoil());
-  String rain = String(readRain());
-  String temp = String(readTemp());
-  String hum  = String(readHum());
+  client.publish((String(deviceID)+"/sensor/light").c_str(), String(readLight()).c_str());
+  client.publish((String(deviceID)+"/sensor/soil").c_str(),  String(readSoil()).c_str());
+  client.publish((String(deviceID)+"/sensor/rain").c_str(),  String(readRain()).c_str());
+  client.publish((String(deviceID)+"/sensor/temp").c_str(),  String(readTemp()).c_str());
+  client.publish((String(deviceID)+"/sensor/hum").c_str(),   String(readHum()).c_str());
 
-  client.publish((String(deviceID) + "/sensor/light").c_str(), light.c_str());
-  client.publish((String(deviceID) + "/sensor/soil").c_str(), soil.c_str());
-  client.publish((String(deviceID) + "/sensor/rain").c_str(), rain.c_str());
-  client.publish((String(deviceID) + "/sensor/temp").c_str(), temp.c_str());
-  client.publish((String(deviceID) + "/sensor/hum").c_str(), hum.c_str());
-
-  Serial.println("[MQTT] Sensor data published!");
+  Serial.println("[MQTT] Sensor data sent!");
 }
 
-// ====================== SETUP ======================
+// =======================================================
+//                        SETUP
+// =======================================================
 void setup() {
   Serial.begin(115200);
+
   dht.begin();
   lcd.init();
   lcd.backlight();
@@ -166,16 +198,21 @@ void setup() {
   pinMode(RELAY_PUMP, OUTPUT);
   digitalWrite(RELAY_PUMP, LOW);
 
+  secureClient.setCACert(root_ca);
+
   connectWiFi();
 
   client.setServer(mqttServer, mqttPort);
   client.setCallback(mqttCallback);
+
   connectMQTT();
 
-  Serial.println("SmartPlant MQTT Ready!");
+  Serial.println("SmartPlant TLS MQTT Ready!");
 }
 
-// ====================== LOOP ======================
+// =======================================================
+//                         LOOP
+// =======================================================
 void loop() {
   if (!client.connected()) connectMQTT();
   client.loop();
@@ -183,12 +220,11 @@ void loop() {
   toggleLCD();
   updateLCD();
 
-  // Gửi dữ liệu mỗi 3 giây
   static unsigned long lastSend = 0;
   if (millis() - lastSend > 3000) {
     lastSend = millis();
     sendSensorsMQTT();
   }
 
-  delay(50);
+  delay(20);
 }
