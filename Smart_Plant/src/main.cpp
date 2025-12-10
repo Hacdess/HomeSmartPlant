@@ -1,178 +1,194 @@
 #include <Arduino.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 #include <DHT.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
 // ====================== PIN CONFIG ======================
-#define DHTPIN 4           // DHT11 digital pin
+#define DHTPIN 4
 #define DHTTYPE DHT11
 
-#define LIGHT_PIN 34       // Analog ánh sáng
-#define SOIL_PIN 35        // Analog độ ẩm đất
-#define RAIN_PIN 36        // Analog cảm biến mưa
+#define LIGHT_PIN 34
+#define SOIL_PIN 35
+#define RAIN_PIN 36
 
-#define BUTTON_PIN 5       // Nút nhấn toggle LCD
-#define BUZZER_PIN 18      // Buzzer cảnh báo
+#define BUTTON_PIN 5
+#define BUZZER_PIN 18
 
-#define RELAY_LIGHT 25     // Đèn (điều khiển từ Web)
-#define RELAY_PUMP 19      // Máy bơm (tự động tưới)
+#define RELAY_PUMP 19  // Active HIGH
 
 // ====================== OBJECTS ======================
 DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// ====================== GLOBAL ======================
+// ====================== MQTT & WIFI ======================
+const char* ssid = "YOUR_WIFI";
+const char* password = "YOUR_PASSWORD";
+
+const char* mqttServer = "broker.hivemq.com";
+const int mqttPort = 1883;
+const char* deviceID = "esp32_c91c3b64d47444098772381daeb628ea";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+// ====================== STATE ======================
 bool lcdEnabled = true;
 int lastButton = HIGH;
 
-// ====================== TEST FUNCTIONS ======================
-void testLight() {
-  int value = analogRead(LIGHT_PIN);
-  Serial.print("Light: ");
-  Serial.println(value);
-}
+bool pumpAutoEnabled = true;
+int soilThreshold = 1800;
+unsigned long lastPumpTime = 0;
+unsigned long pumpInterval = 10000;
 
-void testSoil() {
-  int value = analogRead(SOIL_PIN);
-  Serial.print("Soil Moisture: ");
-  Serial.println(value);
-}
+// ====================== SENSOR READ ======================
+int readLight() { return analogRead(LIGHT_PIN); }
+int readSoil()  { return analogRead(SOIL_PIN); }
+int readRain()  { return analogRead(RAIN_PIN); }
 
-void testRain() {
-  int value = analogRead(RAIN_PIN);
-  Serial.print("Rain: ");
-  Serial.println(value);
-}
+float readTemp() { return dht.readTemperature(); }
+float readHum()  { return dht.readHumidity(); }
 
-void testDHT() {
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-
-  Serial.print("Temp: ");
-  Serial.print(t);
-  Serial.print("C  |  Hum: ");
-  Serial.print(h);
-  Serial.println("%");
-}
-
-// ====================== BUZZER ALERT ======================
-void checkBuzzer() {
-  int rain = analogRead(RAIN_PIN);
-  int soil = analogRead(SOIL_PIN);
-  float h = dht.readHumidity();
-  float t = dht.readTemperature();
-
-  bool danger = false;
-
-  if (t > 35 || h < 30) danger = true;
-  if (soil < 1500) danger = true;  // Đất quá khô
-  if (rain < 1500) danger = true;  // Mưa lớn
-
-  if (danger)
-    digitalWrite(BUZZER_PIN, HIGH);
-  else
-    digitalWrite(BUZZER_PIN, LOW);
-}
-
-// ====================== BUTTON TOGGLE LCD ======================
-void checkButtonToggle() {
+// ====================== LCD ======================
+void toggleLCD() {
   int current = digitalRead(BUTTON_PIN);
   if (lastButton == HIGH && current == LOW) {
     lcdEnabled = !lcdEnabled;
-    if (!lcdEnabled) {
-      lcd.clear();
-      lcd.noBacklight();
-    } else {
-      lcd.backlight();
-    }
+    if (lcdEnabled) lcd.backlight();
+    else { lcd.clear(); lcd.noBacklight(); }
   }
   lastButton = current;
 }
 
-// ====================== LCD DISPLAY ======================
-void displayLCD() {
+void updateLCD() {
   if (!lcdEnabled) return;
-
-  float t = dht.readTemperature();
-  float h = dht.readHumidity();
-
-  int soil = analogRead(SOIL_PIN);
-  int rain = analogRead(RAIN_PIN);
-
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("T:");
-  lcd.print(t);
+  lcd.print(readTemp());
   lcd.print(" H:");
-  lcd.print(h);
+  lcd.print(readHum());
 
   lcd.setCursor(0, 1);
   lcd.print("Soil:");
-  lcd.print(soil);
+  lcd.print(readSoil());
   lcd.print(" R:");
-  lcd.print(rain);
+  lcd.print(readRain());
 }
 
-// ====================== AUTO WATERING ======================
-void autoWatering() {
-  int soil = analogRead(SOIL_PIN);
+// ====================== MQTT CALLBACK ======================
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  String msg = "";
+  for (int i = 0; i < length; i++) msg += (char)payload[i];
 
-  // NGƯỠNG ĐỐI VỚI CẢM BIẾN 35
-  const int SOIL_DRY = 1500;     // quá khô → bật bơm
-  const int SOIL_WET = 2000;     // đã ẩm → tắt bơm ( chống bật/tắt liên tục )
-  Serial.print("Soil Moisture for Auto Watering: ");
-  Serial.println(soil);
-  if (soil < SOIL_DRY) {
-    // BẬT PUMP
-    Serial.println("Pump ON (Auto)");
-    digitalWrite(RELAY_PUMP, HIGH);   // nếu relay kích mức thấp
-  } 
-  else if (soil > SOIL_WET) {
-    // TẮT PUMP
-    Serial.println("Pump OFF (Enough moisture)");
-    digitalWrite(RELAY_PUMP, LOW);
+  Serial.print("[MQTT] Topic: ");
+  Serial.println(topic);
+  Serial.print("[MQTT] Message: ");
+  Serial.println(msg);
+
+  // ========== LẬP TRÌNH Nhận LỆNH ==========
+  if (String(topic) == String(deviceID) + "/cmd/pump") {
+    if (msg == "ON") {
+      digitalWrite(RELAY_PUMP, HIGH);
+      Serial.println("Pump turned ON via MQTT");
+    } 
+    else if (msg == "OFF") {
+      digitalWrite(RELAY_PUMP, LOW);
+      Serial.println("Pump turned OFF via MQTT");
+    }
   }
+
+  if (String(topic) == String(deviceID) + "/cmd/lcd") {
+    if (msg == "ON") { lcdEnabled = true; lcd.backlight(); }
+    if (msg == "OFF") { lcdEnabled = false; lcd.noBacklight(); }
+  }
+}
+
+// ====================== WIFI & MQTT CONNECT ======================
+void connectWiFi() {
+  Serial.print("Connecting WiFi...");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(300);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi Connected!");
+  Serial.println(WiFi.localIP());
+}
+
+void connectMQTT() {
+  while (!client.connected()) {
+    Serial.print("Connecting MQTT...");
+    if (client.connect(deviceID)) {
+      Serial.println("connected!");
+
+      // SUBSCRIBE commands
+      client.subscribe((String(deviceID) + "/cmd/#").c_str());
+
+      // Announce online
+      client.publish((String(deviceID) + "/status").c_str(), "online");
+
+    } else {
+      Serial.print("failed, code=");
+      Serial.println(client.state());
+      delay(2000);
+    }
+  }
+}
+
+// ====================== MQTT PUBLISH ======================
+void sendSensorsMQTT() {
+  String light = String(readLight());
+  String soil = String(readSoil());
+  String rain = String(readRain());
+  String temp = String(readTemp());
+  String hum  = String(readHum());
+
+  client.publish((String(deviceID) + "/sensor/light").c_str(), light.c_str());
+  client.publish((String(deviceID) + "/sensor/soil").c_str(), soil.c_str());
+  client.publish((String(deviceID) + "/sensor/rain").c_str(), rain.c_str());
+  client.publish((String(deviceID) + "/sensor/temp").c_str(), temp.c_str());
+  client.publish((String(deviceID) + "/sensor/hum").c_str(), hum.c_str());
+
+  Serial.println("[MQTT] Sensor data published!");
 }
 
 // ====================== SETUP ======================
 void setup() {
-  Serial.begin(9600);
-  
+  Serial.begin(115200);
   dht.begin();
   lcd.init();
   lcd.backlight();
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(BUZZER_PIN, OUTPUT);
-
-  pinMode(RELAY_LIGHT, OUTPUT);
   pinMode(RELAY_PUMP, OUTPUT);
+  digitalWrite(RELAY_PUMP, LOW);
 
-  digitalWrite(RELAY_LIGHT, HIGH);
-  digitalWrite(RELAY_PUMP, HIGH);  // relay kích mức thấp → HIGH = tắt
+  connectWiFi();
 
-  Serial.println("SmartPlant System Ready!");
+  client.setServer(mqttServer, mqttPort);
+  client.setCallback(mqttCallback);
+  connectMQTT();
+
+  Serial.println("SmartPlant MQTT Ready!");
 }
 
 // ====================== LOOP ======================
 void loop() {
-  // Test all sensors in Serial Monitor
-  testLight();
-  testSoil();
-  testRain();
-  testDHT();
+  if (!client.connected()) connectMQTT();
+  client.loop();
 
-  // Toggle LCD on button press
-  checkButtonToggle();
+  toggleLCD();
+  updateLCD();
 
-  // Update LCD readings
-  displayLCD();
+  // Gửi dữ liệu mỗi 3 giây
+  static unsigned long lastSend = 0;
+  if (millis() - lastSend > 3000) {
+    lastSend = millis();
+    sendSensorsMQTT();
+  }
 
-  // Auto warning buzzer
-  checkBuzzer();
-
-  // Auto watering mode
-  autoWatering();
-
-  delay(1000);
+  delay(50);
 }
