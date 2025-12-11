@@ -7,7 +7,7 @@ const SignUp = () => {
       <p>Form đăng ký...</p>
       <p className="mt-3">
         Đã có tài khoản?{" "}
-        <Link className="text-blue-600" to="/pages/SignIn">
+        <Link className="text-green underline hover:text-green-200" to="/pages/SignIn">
           Đăng nhập
         </Link>
       </p>

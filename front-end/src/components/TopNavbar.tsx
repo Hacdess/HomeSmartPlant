@@ -1,25 +1,30 @@
 // RENDER CÁI NAVBAR Ở TRÊN CÙNG
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { LeafIcon, Bell, BellOff } from 'lucide-react';
 
 const TopNavbar = () => {
     const { username } = useAuth();
 
     return (
-        <div className="w-full bg-white shadow p-4 text-white flex justify-between items-center">
+        <div className="w-full bg-background border-border border-b shadow p-4 text-foreground flex justify-between items-center">
             {/* Logo */}
-            <Link to="/" className="text-xl font-bold">
-                <h1 className="text-xl font-bold text-green-600">SmartPlant</h1>
+            <Link to="/">
+            <div className="flex items-center gap-2">
+                <LeafIcon className="text-primary" />
+                <h1 className="text-font text-xl text-primary"> SmartPlant</h1>
+            </div>
+                
             </Link>
 
             <div className="flex items-center gap-4">
                 {/* khi chưa signin */}
                 {!username && (
                     <>
-                        <Link to="/pages/SignIn" className="text-gray-600 hover:text-green-600">
+                        <Link to="/pages/SignIn" className="text-muted-foreground hover:text-green-600">
                             Đăng nhập
                         </Link>
-                        <Link to="/pages/SignUp" className="text-white bg-green-600 px-4 py-2 rounded hover:bg-green-700">
+                        <Link to="/pages/SignUp" className="text-foreground bg-green-600 px-4 py-2 rounded hover:bg-green-700">
                             Đăng ký
                         </Link>
                     </>
@@ -29,11 +34,11 @@ const TopNavbar = () => {
                 {/* notification bell icon */}
                 {username && (
                     <button className="relative">
-                        <span className="material-icons text-gray-600">Notifications</span>
+                        <Bell className="text-foreground" />
                     </button>
                 )}
                 {username && (
-                    <Link to="/pages/Profile" className="text-gray-600 hover:text-green-600">
+                    <Link to="/pages/Profile" className="text-foreground hover:text-green-600">
                         {username}
                     </Link>
                 )}
