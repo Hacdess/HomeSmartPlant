@@ -1,1 +1,142 @@
 @import "tailwindcss";
+
+:root {
+  --font-size: 16px;
+  --text-font: 'Arial', sans-serif;
+
+  /* Base background / foreground */
+  --background: #0b0c24;             
+  --foreground: #f1f5f9;             
+
+  /* Surfaces */
+  --card: #1d293d;
+  --card-foreground: #f1f5f9;
+
+  --popover: #191d37;
+  --popover-foreground: #f1f5f9;
+
+  /* Primary colors */
+  --primary: #5ce076;                
+  --primary-foreground: #ffffff;
+
+  /* Secondary */
+  --secondary: #191d37;
+  --secondary-foreground: #f1f5f9;
+  /* Muted */
+  --muted: #30363d;
+  --muted-foreground: #8b949e;
+
+  /* Accent */
+  --accent: #191d37;                 
+  --accent-foreground: #f1f5f9;
+
+  /* Destructive */
+  --destructive: #f85149;
+  --destructive-foreground: #f1f5f9;
+
+  /* Border / input / ring */
+  --border: #62748e;
+  --input: #21262d;
+  --ring: #58a6ff;                  
+
+  /* Charts / semantic colors */
+  --blue: #58a6ff;
+  --green: #5ce076;
+  --yellow: #f2cc60;
+  --purple: #bf68f0;
+  --red: #ff6b6b;
+
+  /* Radius */
+  --radius: 0.625rem;
+
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}
+
+/* --------------------------
+   Tailwind Mapping
+   -------------------------- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-blue: var(--blue);
+  --color-green: var(--green);
+  --color-yellow: var(--yellow);
+  --color-purple: var(--purple);
+  --color-red: var(--red);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* --------------------------
+   Base Layer
+   -------------------------- */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* --------------------------
+   Base Typography
+   -------------------------- */
+@layer base {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+    p,
+    label,
+    button,
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
