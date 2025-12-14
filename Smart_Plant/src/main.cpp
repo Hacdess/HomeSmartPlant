@@ -19,6 +19,8 @@
 #define BUTTON_PIN 5
 #define BUZZER_PIN 18
 #define RELAY_PUMP 19   // Active HIGH
+#define RELAY_LIGHT 23   // Relay for Light (Active HIGH)
+
 
 // =======================================================
 //                     OBJECTS
@@ -29,8 +31,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // =======================================================
 //                     WIFI & MQTT CONFIG
 // =======================================================
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "POCO M5s";
+const char* password = "12345678";
 
 const char* mqttServer = "c91c3b64d47444098772381daeb628ea.s1.eu.hivemq.cloud";
 const int mqttPort = 8883;
@@ -147,6 +149,12 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     if (msg == "OFF") digitalWrite(RELAY_PUMP, LOW);
   }
 
+    // -------- Light Control --------
+  if (String(topic) == String(deviceID) + "/cmd/light") {
+    if (msg == "ON")  digitalWrite(RELAY_LIGHT, HIGH);
+    if (msg == "OFF") digitalWrite(RELAY_LIGHT, LOW);
+  }
+
   // --- Remote LCD Control ---
   if (String(topic) == String(deviceID) + "/cmd/lcd") {
     if (msg == "ON")  { lcdEnabled = true;  lcd.backlight(); }
@@ -211,6 +219,9 @@ void setup() {
   pinMode(BUZZER_PIN, OUTPUT);
   pinMode(RELAY_PUMP, OUTPUT);
   digitalWrite(RELAY_PUMP, LOW);
+  pinMode(RELAY_LIGHT, OUTPUT);
+  digitalWrite(RELAY_LIGHT, LOW); // Light OFF initially
+
 
   secureClient.setCACert(root_ca);
 
