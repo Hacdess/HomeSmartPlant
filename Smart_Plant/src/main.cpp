@@ -31,8 +31,8 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // =======================================================
 //                     WIFI & MQTT CONFIG
 // =======================================================
-const char* ssid = "POCO M5s";
-const char* password = "12345678";
+const char* ssid = "";
+const char* password = "";
 
 const char* mqttServer = "c91c3b64d47444098772381daeb628ea.s1.eu.hivemq.cloud";
 const int mqttPort = 8883;
