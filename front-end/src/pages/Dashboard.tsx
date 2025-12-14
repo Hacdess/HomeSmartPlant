@@ -1,7 +1,7 @@
 // DASHBOARD: PAGE CHINH, HIEN THI THONG CAC SENSOR
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import PageLayout from "../layouts/PageLayout";
+import PageLayout from "../layout/PageLayout";
 
 const Dashboard = () => {
   const { username } = useAuth();

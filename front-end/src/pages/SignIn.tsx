@@ -1,6 +1,6 @@
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import PageLayout from "../layouts/PageLayout";
+import PageLayout from "../layout/PageLayout";
 import { useState } from "react";
 
 const SignIn = () => {

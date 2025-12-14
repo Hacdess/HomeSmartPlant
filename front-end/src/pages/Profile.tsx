@@ -1,6 +1,6 @@
 import { Navigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import PageLayout from "../layouts/PageLayout";
+import PageLayout from "../layout/PageLayout";
 
 const Profile = () => {
   const { username , logout } = useAuth();
