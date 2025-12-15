@@ -3,34 +3,35 @@ import { useAuth } from "../contexts/AuthContext";
 import PageLayout from "../layout/PageLayout";
 import { useState } from "react";
 
-const SignIn = () => {
+export default function SignIn() {
   const { username, login } = useAuth();
   const [name, setName] = useState("");
 
   if (username) return <Navigate to="/pages/dashboard" />;
 
-  return (
-    <PageLayout title="Sign In">
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="border p-2 mb-4 w-64"
-        placeholder="Nhập username"
-      />
-      <button
-        onClick={() => login(name)}
-        className="bg-green-600 text-foreground px-4 py-2 rounded"
-      >
-        Đăng nhập
-      </button>
+  // return (
+  //     <input
+  //       value={name}
+  //       onChange={(e) => setName(e.target.value)}
+  //       className="border p-2 mb-4 w-64"
+  //       placeholder="Nhập username"
+  //     />
+  //     <button
+  //       onClick={() => login(name)}
+  //       className="bg-green-600 text-foreground px-4 py-2 rounded"
+  //     >
+  //       Đăng nhập
+  //     </button>
 
-      <p className="mt-3">
-        Chưa có tài khoản?{" "}
-        <Link className="text-green-600 underline" to="/pages/SignUp">
-          Đăng ký
-        </Link>
-      </p>
-    </PageLayout>
-  );
+  //     <p className="mt-3">
+  //       Chưa có tài khoản?{" "}
+  //       <Link className="text-green-600 underline" to="/pages/SignUp">
+  //         Đăng ký
+  //       </Link>
+  //     </p>
+  // );
+
+  return(
+    <></>
+  )
 };
-export default SignIn;
