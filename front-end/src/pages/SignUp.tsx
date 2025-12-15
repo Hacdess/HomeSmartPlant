@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { type RegisterRequest } from "../types/auth.type";
+import { type SignUpRequest } from "../types/auth.type";
 import { Leaf } from "lucide-react";
 
 const schema = z
@@ -13,12 +13,12 @@ const schema = z
     full_name: z.string().min(2, "Họ tên phải có ít nhất 2 kí tự"),
     user_name: z
       .string()
-      .min(3, "Username phải có ít nhất 3 ký tự")
+      .min(2, "Username phải có ít nhất 2 ký tự")
       .regex(/^[a-zA-Z0-9_]+$/, "Username chỉ được chứa chữ, số và dấu gạch dưới"),
     email: z.string().email("Email không hợp lệ"),
     password: z
       .string()
-      .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+      .min(6, "Password must be at least 6 characters")
       .regex(/[a-zA-Z]/, "Mật khẩu phải chứa ít nhất 1 chữ cái")
       .regex(/[0-9]/, "Mật khẩu phải chứa ít nhất 1 số")
       .regex(/[^a-zA-Z0-9]/, "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (@, #, !, ...)"),
@@ -43,7 +43,7 @@ export default function SignUp() {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (formData: RegisterRequest) => {
+  const onSubmit = async (formData: SignUpRequest) => {
     setIsLoading(true);
     setServerError("");
     setSuccessMsg("");

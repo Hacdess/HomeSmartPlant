@@ -5,7 +5,7 @@ export const AuthServices = {
   async signUp(email: string, password: string, full_name: string, user_name: string) {
     try {
       const checkUser = await supabase
-        .from("profiles")
+        .from('profiles')
         .select('user_name')
         .eq('user_name', user_name)
         .maybeSingle()

@@ -2,12 +2,30 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import PageLayout from "../layout/PageLayout";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type SignInRequest } from "../types/auth.type";
 
+const schema = z
+  .object({
+    identifer: z.string().min(2, "Username or Email must be at least 2 characters"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+  })
+  
 export default function SignIn() {
-  const { username, login } = useAuth();
-  const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  if (username) return <Navigate to="/pages/dashboard" />;
+  const onSubmit = async (formData: SignInRequest) => {
+
+  }
+
+  // const { username, login } = useAuth();
+  // const [name, setName] = useState("");
+
+  // if (username) return <Navigate to="/pages/dashboard" />;
 
   // return (
   //     <input
