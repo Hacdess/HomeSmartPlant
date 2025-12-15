@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import PageLayout from "../layout/PageLayout";
-import { useEffect } from "react";
+import { useEffect, useReducer } from "react";
 import { useForm } from "react-hook-form";
-import z, { email } from "zod";
+import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { type RegisterRequest } from "../types/auth.type";
+import { Leaf } from "lucide-react";
 
 const schema = z
   .object({
@@ -83,6 +84,10 @@ export default function SignUp() {
     }
   };
 
+  useEffect(() => {
+    document.title = "Đăng Ký Tài Khoản | Smart Plant";
+  }, []);
+
   // Helper để render input field cho gọn code
   const renderInput = (id, label, type, placeholder) => (
     <div className="mb-4">
@@ -110,16 +115,19 @@ export default function SignUp() {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+    <div className="min-h-screen bg-background flex flex-col gap-10 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center">
+        <Leaf size="35" className="text-primary text-font"/>
+        <h2 className="text-3xl font-bold text-primary">
+          SmartPlant
+        </h2>
+      </div>
+      <div className="max-w-md w-full space-y-8 bg-background p-8 rounded-xl shadow-lg border border-gray-100">
         
-        {/* Header */}
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Đăng Ký
-          </h2>
+        <div className="flex flex-col items-center">
+          <h2>Đăng ký</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Tạo tài khoản mới để quản lý thiết bị IoT
+            Create a new account to manage IoT devices
           </p>
         </div>
 
@@ -139,17 +147,25 @@ export default function SignUp() {
         {/* Form */}
         <form className="mt-8 space-y-2" onSubmit={handleSubmit(onSubmit)}>
           
-          {renderInput("full_name", "Họ và tên", "text", "Nguyễn Văn A")}
+          {renderInput("full_name", "Fullname", "text", "Nguyễn Văn A")}
           
-          {renderInput("user_name", "Tên đăng nhập", "text", "nguyenvana")}
+          {renderInput("user_name", "Username", "text", "nguyenvana")}
           
           {renderInput("email", "Email", "email", "example@gmail.com")}
           
-          {renderInput("password", "Mật khẩu", "password", "******")}
+          {renderInput("password", "Password", "password", "******")}
           
-          {renderInput("confirmPassword", "Nhập lại mật khẩu", "password", "******")}
+          {renderInput("confirmPassword", "Confirm password", "password", "******")}
 
           {/* Button Submit */}
+          <Link to={"/"}>
+            <button
+              type="button"
+              className=""
+            >
+              Back
+            </button>
+          </Link>
           <button
             type="submit"
             disabled={isLoading}

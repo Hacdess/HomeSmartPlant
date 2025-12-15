@@ -1,8 +1,15 @@
 import PageLayout from "../layout/PageLayout";
 import { useAuth } from "../contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { useEffect
 
-export default function Homepafe()  {
+ } from "react";
+export default function Homepage()  {
+
+  useEffect(() => {
+    document.title = "Smart Plant";
+  }, []);
+
   return (
     <div className="text-justify flex flex-col md:flex-row justify-center align-center gap-5">
       <div className="md:w-1/2">
