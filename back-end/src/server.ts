@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth_routes';
 import { mqttClient } from './config/mqtt';
+import { MqttServices } from './services/mqtt_services';
 
 dotenv.config();
 
@@ -12,6 +13,8 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json()); // Để đọc được body json
+
+MqttServices.init();
 
 // Setup Router API
 // Tất cả api auth sẽ bắt đầu bằng /api/auth
