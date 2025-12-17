@@ -230,10 +230,14 @@ void connectMQTT() {
 
     if (client.connect(deviceID, mqttUser, mqttPass)) {
       Serial.println("connected!");
-      client.subscribe("user/bind");
+      client.subscribe((String(deviceID) + "/bind").c_str());
+      StaticJsonDocument<64> doc;
+      doc["device_id"] = deviceID;
 
-      //client.subscribe((String(deviceID) + "/cmd/#").c_str());
-      client.publish("device/bind", String(deviceID).c_str());
+      char buf[64];
+      serializeJson(doc, buf);
+      client.publish("device/bind", buf);
+
       return;
     } else {
       Serial.printf("fail (%d)\n", client.state());
@@ -253,7 +257,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, msg);
 
-  if (String(topic) == "user/bind") {
+  if (String(topic) == String(deviceID) + "/bind") {
     if (userID == "")
     {
       userID = doc["user_id"] | "";

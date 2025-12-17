@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth_routes';
 import cookieParser from 'cookie-parser';
 import { mqttClient } from './config/mqtt';
+import { MqttServices } from './services/mqtt_services';
 
 dotenv.config();
 
@@ -14,6 +15,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json()); // Để đọc được body json
 app.use(cookieParser());
+
+MqttServices.init();
 
 // Setup Router API
 // Tất cả api auth sẽ bắt đầu bằng /api/auth
