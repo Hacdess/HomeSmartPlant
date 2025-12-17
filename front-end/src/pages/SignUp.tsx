@@ -1,33 +1,12 @@
-import { Link } from "react-router-dom";
-import PageLayout from "../layout/PageLayout";
-import { useEffect, useReducer } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { type SignUpRequest } from "../types/auth.type";
 import { Leaf } from "lucide-react";
+import { SignUpSchema, type SignUpRequest } from "@shared/auth"
+import InputField from "../components/Auth/InputFields";
 
-const schema = z
-  .object({
-    full_name: z.string().min(2, "Họ tên phải có ít nhất 2 kí tự"),
-    user_name: z
-      .string()
-      .min(2, "Username phải có ít nhất 2 ký tự")
-      .regex(/^[a-zA-Z0-9_]+$/, "Username chỉ được chứa chữ, số và dấu gạch dưới"),
-    email: z.string().email("Email không hợp lệ"),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .regex(/[a-zA-Z]/, "Mật khẩu phải chứa ít nhất 1 chữ cái")
-      .regex(/[0-9]/, "Mật khẩu phải chứa ít nhất 1 số")
-      .regex(/[^a-zA-Z0-9]/, "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (@, #, !, ...)"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-      message: "Mật khẩu nhập lại không khớp",
-      path: ["confirmPassword"]
-  });
 
 export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
@@ -40,8 +19,10 @@ export default function SignUp() {
     formState: { errors },
     reset,
   } = useForm({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(SignUpSchema),
   });
+
+  const navigate = useNavigate();
 
   const onSubmit = async (formData: SignUpRequest) => {
     setIsLoading(true);
@@ -52,7 +33,9 @@ export default function SignUp() {
       // Gọi API Backend
       const payload = {
         email: formData.email,
+        phone: formData.phone,
         password: formData.password,
+        confirmPassword: formData.confirmPassword,
         full_name: formData.full_name,
         user_name: formData.user_name
       }
@@ -67,11 +50,12 @@ export default function SignUp() {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data.message || "Có lỗi xảy ra từ phía Server")
+      if (!response.ok) throw new Error(data.message || "Server error")
       
       if (data.isSuccess) {
         setSuccessMsg(data.message);
         reset();
+        navigate("/");
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -89,30 +73,7 @@ export default function SignUp() {
   }, []);
 
   // Helper để render input field cho gọn code
-  const renderInput = (id, label, type, placeholder) => (
-    <div className="mb-4">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        placeholder={placeholder}
-        {...register(id)}
-        className={`w-full bg-background px-4 py-2 border rounded-lg focus:ring-2 focus:outline-none transition-colors duration-200
-          ${errors[id] 
-            ? 'border-red-500 focus:ring-red-200 focus:border-red-500' 
-            : 'border-gray-300 focus:ring-blue-200 focus:border-blue-500'
-          }
-        `}
-      />
-      {errors[id] && (
-        <p className="mt-1 text-xs text-red-500 italic">
-          {errors[id]?.message}
-        </p>
-      )}
-    </div>
-  );
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col gap-10 items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -147,16 +108,13 @@ export default function SignUp() {
         {/* Form */}
         <form className="mt-8 space-y-2" onSubmit={handleSubmit(onSubmit)}>
           
-          {renderInput("full_name", "Fullname", "text", "Nguyễn Văn A")}
+          <InputField id="full_name" label="Fullname" type="text" placeholder="Nguyễn Văn A" register={register} errors={errors}/>
+          <InputField id="user_name" label="Username" type="text" placeholder="nguyenvana" register={register} errors={errors}/>
+          <InputField id="phone" label="Phone" type="tel" placeholder="+84 XX XXX XXXX" register={register} errors={errors}/>
+          <InputField id="email" label="Email" type="email" placeholder="nguyenvana@gmail" register={register} errors={errors}/>
+          <InputField id="password" label="Password" type="password" placeholder="******" register={register} errors={errors}/>
+          <InputField id="confirmPassword" label="Confirm password" type="password" placeholder="******" register={register} errors={errors}/>          
           
-          {renderInput("user_name", "Username", "text", "nguyenvana")}
-          
-          {renderInput("email", "Email", "email", "example@gmail.com")}
-          
-          {renderInput("password", "Password", "password", "******")}
-          
-          {renderInput("confirmPassword", "Confirm password", "password", "******")}
-
           {/* Button Submit */}
           <Link to={"/"}>
             <button
@@ -193,9 +151,9 @@ export default function SignUp() {
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
             Đã có tài khoản?{' '}
-            <a href="/login" className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
-              Đăng nhập tại đây
-            </a>
+            <Link to={"/sign-in"} className="font-medium text-blue-600 hover:text-blue-500 hover:underline">
+              Sign-in here
+            </Link>
           </p>
         </div>
 

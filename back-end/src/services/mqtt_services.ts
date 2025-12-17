@@ -20,6 +20,7 @@ export const MqttServices = {
     // -------- DEVICE BIND --------
     if (topic === "device/bind") {
       const { device_id } = msg;
+      console.log("Binding device:", device_id);
       if (!device_id) return;
 
       const { data } = await supabase

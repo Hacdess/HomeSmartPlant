@@ -14,12 +14,21 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    alias: {
+      '@shared': path.resolve(__dirname, '../back-end/src/types')
+    }
+  },
   server: {
     proxy: {
       '/api' : {
         target: `http://localhost:${BACKEND_PORT}`,
         changeOrigin: true,
         secure: false,      }
+    },
+    fs: {
+      // Cho phép Vite tải file từ thư mục cấp cha (để với tới back-end)
+      allow: ['..']
     }
-  }
+  },
 })

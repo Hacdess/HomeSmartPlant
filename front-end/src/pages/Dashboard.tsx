@@ -4,13 +4,9 @@ import { useAuth } from "../contexts/AuthContext";
 import PageLayout from "../layout/PageLayout";
 
 const Dashboard = () => {
-  const { username } = useAuth();
-  if (!username) return <Navigate to="/pages/SignIn" />;
-
+  const { user, setUser } = useAuth();
   return (
-    <PageLayout title="Dashboard">
       <p>Dữ liệu cảm biến sẽ hiển thị tại đây.</p>
-    </PageLayout>
   );
 };
 export default Dashboard;
