@@ -17,7 +17,6 @@ app.use(cookieParser());
 
 // Setup Router API
 // Tất cả api auth sẽ bắt đầu bằng /api/auth
-// Ví dụ: http://localhost:3000/api/auth/login
 app.use('/api/auth', authRoutes);
 
 // Route mặc định check server

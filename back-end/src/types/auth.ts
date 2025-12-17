@@ -9,6 +9,11 @@ export const SignUpSchema = z
       .min(2, "Username phải có ít nhất 2 ký tự")
       .regex(/^[a-zA-Z0-9_]+$/, "Username chỉ được chứa chữ, số và dấu gạch dưới"),
     email: z.string().email("Email không hợp lệ"),
+    phone: z
+      .string()
+      .min(10, "Số điện thoại phải có ít nhất 10 số")
+      .max(15, "Số điện thoại không được quá 15 số")
+      .regex(/^\+?[0-9]+$/, "Số điện thoại chỉ được chứa số (và dấu +)"),
     password: z
       .string()
       .min(6, "Password must be at least 6 characters")

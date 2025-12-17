@@ -33,6 +33,7 @@ export default function SignUp() {
       // Gọi API Backend
       const payload = {
         email: formData.email,
+        phone: formData.phone,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
         full_name: formData.full_name,
@@ -109,6 +110,7 @@ export default function SignUp() {
           
           <InputField id="full_name" label="Fullname" type="text" placeholder="Nguyễn Văn A" register={register} errors={errors}/>
           <InputField id="user_name" label="Username" type="text" placeholder="nguyenvana" register={register} errors={errors}/>
+          <InputField id="phone" label="Phone" type="tel" placeholder="+84 XX XXX XXXX" register={register} errors={errors}/>
           <InputField id="email" label="Email" type="email" placeholder="nguyenvana@gmail" register={register} errors={errors}/>
           <InputField id="password" label="Password" type="password" placeholder="******" register={register} errors={errors}/>
           <InputField id="confirmPassword" label="Confirm password" type="password" placeholder="******" register={register} errors={errors}/>          

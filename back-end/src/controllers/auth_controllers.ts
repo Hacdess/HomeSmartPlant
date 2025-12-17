@@ -5,19 +5,23 @@ import { SignUpSchema, SignInSchema } from "../types/auth";
 import z, { ZodError } from "zod";
 import UserServices from "../services/user_services";
 import { error } from "console";
+import { LogServices, type supabaseLog } from "../services/log_services";
+import { supabase } from "../config/supabase";
 
 export const AuthControllers = {
   signUp: async (req: Request, res: Response) => {
     try {
-      const { email, password, full_name, user_name } = SignUpSchema.parse(req.body);
+      const { email, phone, password, full_name, user_name } = SignUpSchema.parse(req.body);
 
-      const existingUser = await UserServices.findByIdentity(email, user_name);
+      const existingUser = await UserServices.findByIdentity(email, user_name, phone);
 
       if (existingUser) {
         if (existingUser.data?.email === email)
-          return res.status(409).json({ message: "Email existed" });
+          return res.status(409).json(errorResponse("Email existed"));
         if (existingUser.data?.user_name === user_name)
-          return res.status(409).json({ message: "Username existed" });
+          return res.status(409).json(errorResponse("Username existed"));
+        if (existingUser.data?.phone)
+          return res.status(409).json(errorResponse("Phpne existed"));
       }
 
       const encryptedPassword = await AuthServices.hashPassword(password);
@@ -26,6 +30,7 @@ export const AuthControllers = {
         full_name: full_name,
         user_name: user_name,
         email: email,
+        phone: phone,
         password: encryptedPassword
       }
 
@@ -75,6 +80,14 @@ export const AuthControllers = {
         maxAge: 3600 * 1000,
       });
 
+      const log: supabaseLog = {
+        user_id: payload.user_id,
+        type: "AUTHENTICATE",
+        content: "User signed in"
+      }
+
+      await LogServices.writeLog(log);
+
       return res.status(200).json(successResponse(payload, "Signed in successfully"));
 
     } catch(e: any) {
@@ -92,7 +105,6 @@ export const AuthControllers = {
       if (!id) return res.status(404).json(errorResponse("No user stored"));
 
       const user = await UserServices.findByID(id);
-      console.log(user)
 
       if (!user || !user.data) return res.status(404).json(errorResponse("User not found"));
       
