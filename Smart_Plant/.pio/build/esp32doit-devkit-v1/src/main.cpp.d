@@ -236,4 +236,7 @@
  .pio/libdeps/esp32doit-devkit-v1/DHT\ sensor\ library/DHT.h \
  C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src/Wire.h \
  C:/Users/AnhTris/.platformio/packages/framework-arduinoespressif32/cores/esp32/esp32-hal.h \
- .pio/libdeps/esp32doit-devkit-v1/LiquidCrystal_I2C/LiquidCrystal_I2C.h
+ .pio/libdeps/esp32doit-devkit-v1/LiquidCrystal_I2C/LiquidCrystal_I2C.h \
+ .pio/libdeps/esp32doit-devkit-v1/ArduinoJson/src/ArduinoJson.h \
+ .pio/libdeps/esp32doit-devkit-v1/ArduinoJson/src/ArduinoJson.hpp \
+ .pio/libdeps/esp32doit-devkit-v1/ArduinoJson/src/ArduinoJson/Configuration.hpp
