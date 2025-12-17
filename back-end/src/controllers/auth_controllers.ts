@@ -6,7 +6,7 @@ import z, { ZodError } from "zod";
 import UserServices from "../services/user_services";
 import { error } from "console";
 import { LogServices, type supabaseLog } from "../services/log_services";
-import { supabase } from "../config/supabase";
+import { MailServices } from "../services/email_services";
 
 export const AuthControllers = {
   signUp: async (req: Request, res: Response) => {
@@ -67,6 +67,8 @@ export const AuthControllers = {
         email: existingUser.data.email
       }
       const token = await AuthServices.generateToken(payload)
+
+      await MailServices.sendAlert("nguyenhuuanhtri866@gmail.com", "TKin mới đăng nhập");
 
       const isProduction = process.env.NODE_ENV === 'production';
       const cookieOptions = {
