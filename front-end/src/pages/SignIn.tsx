@@ -47,6 +47,7 @@ export default function SignIn() {
       if (data.isSuccess) {
         setSuccessMsg(data.message);
         const timer = setTimeout(() => {
+          setIsLoading(false);
           navigate("/");
         }, 2000);
         
@@ -59,7 +60,6 @@ export default function SignIn() {
         setServerError("Server error");
       }
     } finally {
-      setIsLoading(false);
     }
   }
 
