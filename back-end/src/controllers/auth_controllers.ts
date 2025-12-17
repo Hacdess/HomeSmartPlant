@@ -4,7 +4,7 @@ import { successResponse, errorResponse, ApiResponse } from "../utils/response";
 import { Request, Response } from "express";
 import { error } from "console";
 import { AuthServices } from "../services/auth_services";
-import { RegisterRequest, LoginRequest } from "../interface/auth";
+import { RegisterRequest, LoginRequest } from "../types/auth";
 
 export const AuthControllers = {
   signUp: async (req: Request, res: Response) => {
