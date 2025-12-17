@@ -1,28 +1,29 @@
 // QUẢN LÝ TRẠNG THÁI ĐĂNG NHẬP 
 import React, { createContext, useContext, useState} from 'react';
 
+export type User = {
+  full_name: string;
+  user_name: string;
+  email: string;
+};
+
 interface AuthContextType {
-  username: string | null;
-  login: (username: string) => void;
-  logout: () => void;
+  user: User | null;
+  setUser: (u: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
-    username: null,
-    login: () => {},    
-    logout: () => {},
+  user: null, setUser: () => {}
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [username, setUsername] = useState<string | null>(null);
-    const login = (username: string) => setUsername(username);
-    const logout = () => setUsername(null);
+  const [user, setUser] = useState<User | null>(null);
 
-    return (
-        <AuthContext.Provider value={{ username, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ user, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);
