@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth_routes';
 import cookieParser from 'cookie-parser';
+import { mqttClient } from './config/mqtt';
 
 dotenv.config();
 

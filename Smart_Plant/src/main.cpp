@@ -1,10 +1,12 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include <vector>
 #include <WiFiClientSecure.h>      // TLS
 #include <PubSubClient.h>
 #include <DHT.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <ArduinoJson.h>
 
 // =======================================================
 //                     PIN CONFIG
@@ -27,24 +29,27 @@
 // =======================================================
 DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+bool isLCDOn = false;
 
-// =======================================================
-//                     WIFI & MQTT CONFIG
-// =======================================================
-const char* ssid = "";
-const char* password = "";
-
-const char* mqttServer = "c91c3b64d47444098772381daeb628ea.s1.eu.hivemq.cloud";
+const char* mqttServer = "ae56774440b544af8d633adb3b5331af.s1.eu.hivemq.cloud";
 const int mqttPort = 8883;
 
-const char* mqttUser = "SmartPlant";
+const char* mqttUser = "MyPlant";
 const char* mqttPass = "My_plant@123";
+const char* deviceID = "esp32_1307557";
 
-const char* deviceID = "esp32_c91c3b64d47444098772381daeb628ea";
+const int MAX_WIFI_SCAN = 20;
+bool isRunning = false;
+bool isShowMenu = true;
+bool isReuse = false;
+int lastTime = 0;
+int lastButtonState = LOW;
 
-// =======================================================
-//                     TLS ROOT CERT
-// =======================================================
+String ssid = "";
+String pass = "";
+String userID = "";
+std::vector<String> seenBSSIDs;
+
 const char* root_ca =
 "-----BEGIN CERTIFICATE-----\n"
 "MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJKoZIhvcNAQELBQAw\n"
@@ -78,26 +83,10 @@ const char* root_ca =
 "emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=\n"
 "-----END CERTIFICATE-----\n";
 
-// =======================================================
-//                  SECURE MQTT CLIENT
-// =======================================================
 WiFiClientSecure secureClient;
 PubSubClient client(secureClient);
 
-// =======================================================
-//                  STATE VARIABLES
-// =======================================================
-bool lcdEnabled = true;
-int lastButton = HIGH;
-
-bool pumpAutoEnabled = true;   // (Giữ nguyên)
-int soilThreshold = 1800;
-unsigned long lastPumpTime = 0;
-unsigned long pumpInterval = 10000;
-
-// =======================================================
-//                 SENSOR READ FUNCTIONS
-// =======================================================
+// Reading sensors functions
 int readLight() { return analogRead(LIGHT_PIN); }
 int readSoil()  { return analogRead(SOIL_PIN); }
 int readRain()  { return analogRead(RAIN_PIN); }
@@ -105,21 +94,228 @@ int readRain()  { return analogRead(RAIN_PIN); }
 float readTemp() { return dht.readTemperature(); }
 float readHum()  { return dht.readHumidity(); }
 
-// =======================================================
-//                        LCD
-// =======================================================
-void toggleLCD() {
-  int current = digitalRead(BUTTON_PIN);
-  if (lastButton == HIGH && current == LOW) {
-    lcdEnabled = !lcdEnabled;
-    if (lcdEnabled) lcd.backlight();
-    else { lcd.clear(); lcd.noBacklight(); }
+String readLineEcho() {
+  String input = "";
+  while (true) {
+    if (Serial.available()) {
+      char c = Serial.read();
+
+      if (c == '\n' || c == '\r') {
+        input.trim();
+        if (input.length() > 0) {
+          return input;
+        }
+      } else {
+        Serial.print(c);   // echo character
+        input += c;
+      }
+    }
+    delay(5);
   }
-  lastButton = current;
 }
 
+bool isSeen(String bssid) {
+  for (auto &s : seenBSSIDs) {
+    if (s == bssid) return true;
+  }
+  return false;
+}
+
+void scanWiFi() {
+  seenBSSIDs.clear();
+  Serial.println("\nScanning WiFi networks...");
+  int n = WiFi.scanNetworks();
+  int count = 0;
+
+  if (n == 0) {
+    Serial.println("No networks found.");
+  } else {
+    int limit = min(n, MAX_WIFI_SCAN);
+    for (int i = 0; i < limit; i++) {
+      String bssid = WiFi.SSID(i).c_str();
+      if (!isSeen(bssid)) {
+        seenBSSIDs.push_back(bssid);
+      }
+      else continue;
+
+      Serial.printf("%d) %s (%ddBm)\n",
+                     count + 1,
+                    WiFi.SSID(i).c_str(),
+                    WiFi.RSSI(i));
+      count++;
+    }
+  }
+
+}
+
+void connectWiFiHelper(String ssid, String pass) {
+  Serial.print("\nConnecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid.c_str(), pass.c_str());  
+
+  unsigned long start = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - start < 8000) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi connected!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nWiFi connection failed.");
+    WiFi.disconnect(true);
+    delay(1000);
+  }
+}
+
+void connectWiFi() {
+  String oldSSID = ssid;
+  String oldPass = pass;
+  ssid = "";
+  pass = "";
+  if (WiFi.status() == WL_CONNECTED) {
+    isReuse = true;
+  }
+  Serial.print("\nEnter SSID: ");
+  ssid = readLineEcho();
+
+  Serial.print("\nEnter Password: ");
+  pass = readLineEcho();
+
+  connectWiFiHelper(ssid, pass);
+  
+  if (isReuse && WiFi.status() != WL_CONNECTED) {
+    Serial.println("\nReusing old WiFi credentials...");
+    connectWiFiHelper(oldSSID, oldPass);
+    oldSSID = "";
+    oldPass = "";
+    isReuse = false;
+  }
+  return; 
+}
+
+void disConnectWifi(){
+  if (WiFi.status() == WL_CONNECTED) {
+    ssid = "";
+    pass = "";
+    WiFi.disconnect(true);
+    Serial.println("\nWiFi disconnected successfully!");
+    delay(1000);
+  } else {
+    Serial.println("\nWiFi is not connected.");
+  }
+  return;
+}
+
+void runDevices() {
+  Serial.println("\nRunning devices...");
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("Current WiFi: ");
+    Serial.println(WiFi.SSID());
+  } else {
+    Serial.println("Current WiFi: Not connected => Can not connect to MQTT broker.");
+    Serial.println("Please connect to WiFi first.");
+    isRunning = false;
+    isShowMenu = true;
+    return;
+  }
+}
+
+void connectMQTT() {
+  while (!client.connected()) {
+    Serial.print("Connecting MQTT... ");
+
+    if (client.connect(deviceID, mqttUser, mqttPass)) {
+      Serial.println("connected!");
+      client.subscribe("user/bind");
+
+      //client.subscribe((String(deviceID) + "/cmd/#").c_str());
+      client.publish("device/bind", String(deviceID).c_str());
+      return;
+    } else {
+      Serial.printf("fail (%d)\n", client.state());
+      delay(2000);
+      return;
+    }
+  }
+  return;
+}
+
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  String msg = "";
+  for (int i = 0; i < length; i++) msg += (char)payload[i];
+
+  Serial.printf("[MQTT] %s → %s\n", topic, msg.c_str());
+
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, msg);
+
+  if (String(topic) == "user/bind") {
+    if (userID == "")
+    {
+      userID = doc["user_id"] | "";
+      Serial.print("[MQTT] Bound to user ID: ");
+      Serial.println(userID);
+      client.subscribe((String(userID) + "/#").c_str());
+    }
+  }
+
+  // --- Remote Pump Control ---
+  if (String(topic) == String(userID) + "/pump") {
+    if (doc["action"] == "ON")  digitalWrite(RELAY_PUMP, HIGH);
+    if (doc["action"] == "OFF") digitalWrite(RELAY_PUMP, LOW);
+  }
+
+    // -------- Light Control --------
+  if (String(topic) == String(userID) + "/light") {
+    Serial.println("[MQTT] Light control command received.");
+    Serial.println("[MQTT] Action: " + String((const char*)doc["action"]));
+    if (doc["action"] == "ON")  digitalWrite(RELAY_LIGHT, HIGH);
+    if (doc["action"] == "OFF") digitalWrite(RELAY_LIGHT, LOW);
+  }
+}
+
+void sendSensorsMQTT() {
+  if (userID == "") {
+    Serial.println("[MQTT] User ID not bound yet. Cannot send sensor data.");
+    return;
+  }
+  StaticJsonDocument<256> doc;
+  doc["light"] = readLight();
+  doc["soil"]  = readSoil();
+  doc["rain"]  = readRain();
+  doc["temp"]  = readTemp();
+  doc["hum"]   = readHum();
+
+  char buffer[256];
+  serializeJson(doc, buffer, sizeof(buffer));
+  client.publish((String(userID)+"/sensor").c_str(), buffer);
+
+  Serial.println("[MQTT] Sensor data sent!");
+}
+
+void showMenu() {
+  Serial.println("\n========== MENU ==========");
+  Serial.println("1. Detect WiFi networks");
+  Serial.println("2. Connect to WiFi");
+  Serial.println("3. Disconnect WiFi");
+  Serial.println("4. Run devices");
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("Current WiFi: ");
+    Serial.println(WiFi.SSID());
+  } else {
+    Serial.println("Current WiFi: Not connected");
+  }
+  Serial.println("==========================");
+  Serial.print("Select option and press ENTER: ");
+}
+
+
 void updateLCD() {
-  if (!lcdEnabled) return;
+  if (!isLCDOn) return;
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("T:");
@@ -134,86 +330,12 @@ void updateLCD() {
   lcd.print(readRain());
 }
 
-// =======================================================
-//                 MQTT CALLBACK HANDLER
-// =======================================================
-void mqttCallback(char* topic, byte* payload, unsigned int length) {
-  String msg = "";
-  for (int i = 0; i < length; i++) msg += (char)payload[i];
-
-  Serial.printf("[MQTT] %s → %s\n", topic, msg.c_str());
-
-  // --- Remote Pump Control ---
-  if (String(topic) == String(deviceID) + "/cmd/pump") {
-    if (msg == "ON")  digitalWrite(RELAY_PUMP, HIGH);
-    if (msg == "OFF") digitalWrite(RELAY_PUMP, LOW);
-  }
-
-    // -------- Light Control --------
-  if (String(topic) == String(deviceID) + "/cmd/light") {
-    if (msg == "ON")  digitalWrite(RELAY_LIGHT, HIGH);
-    if (msg == "OFF") digitalWrite(RELAY_LIGHT, LOW);
-  }
-
-  // --- Remote LCD Control ---
-  if (String(topic) == String(deviceID) + "/cmd/lcd") {
-    if (msg == "ON")  { lcdEnabled = true;  lcd.backlight(); }
-    if (msg == "OFF") { lcdEnabled = false; lcd.noBacklight(); }
-  }
-}
-
-// =======================================================
-//                 WIFI + MQTT CONNECT
-// =======================================================
-void connectWiFi() {
-  Serial.print("Connecting WiFi ");
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(300);
-  }
-  Serial.println(" connected!");
-}
-
-void connectMQTT() {
-  while (!client.connected()) {
-    Serial.print("Connecting MQTT... ");
-
-    if (client.connect(deviceID, mqttUser, mqttPass)) {
-      Serial.println("connected!");
-
-      client.subscribe((String(deviceID) + "/cmd/#").c_str());
-      client.publish((String(deviceID) + "/status").c_str(), "online");
-
-    } else {
-      Serial.printf("fail (%d)\n", client.state());
-      delay(2000);
-    }
-  }
-}
-
-// =======================================================
-//                PUBLISH SENSOR DATA
-// =======================================================
-void sendSensorsMQTT() {
-  client.publish((String(deviceID)+"/sensor/light").c_str(), String(readLight()).c_str());
-  client.publish((String(deviceID)+"/sensor/soil").c_str(),  String(readSoil()).c_str());
-  client.publish((String(deviceID)+"/sensor/rain").c_str(),  String(readRain()).c_str());
-  client.publish((String(deviceID)+"/sensor/temp").c_str(),  String(readTemp()).c_str());
-  client.publish((String(deviceID)+"/sensor/hum").c_str(),   String(readHum()).c_str());
-
-  Serial.println("[MQTT] Sensor data sent!");
-}
-
-// =======================================================
-//                        SETUP
-// =======================================================
 void setup() {
   Serial.begin(9600);
+  delay(1000);
 
   dht.begin();
   lcd.init();
-  lcd.backlight();
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(BUZZER_PIN, OUTPUT);
@@ -222,34 +344,72 @@ void setup() {
   pinMode(RELAY_LIGHT, OUTPUT);
   digitalWrite(RELAY_LIGHT, LOW); // Light OFF initially
 
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true);
 
   secureClient.setCACert(root_ca);
-
-  connectWiFi();
-
   client.setServer(mqttServer, mqttPort);
   client.setCallback(mqttCallback);
 
-  connectMQTT();
-
-  Serial.println("SmartPlant TLS MQTT Ready!");
+  showMenu();
 }
 
-// =======================================================
-//                         LOOP
-// =======================================================
+
 void loop() {
-  if (!client.connected()) connectMQTT();
-  client.loop();
-
-  toggleLCD();
-  updateLCD();
-
-  static unsigned long lastSend = 0;
-  if (millis() - lastSend > 3000) {
-    lastSend = millis();
-    sendSensorsMQTT();
+  // Detect WiFi lost
+  if (WiFi.status() != WL_CONNECTED && !isShowMenu) {
+    Serial.println("\nWiFi disconnected!");
+    isShowMenu = true;
+    isRunning = false;
   }
 
-  delay(20);
+  if (isShowMenu) {
+    showMenu();
+    String choice = readLineEcho();
+    if (choice == "1") {
+      scanWiFi();
+    }
+    else if (choice == "2") {
+      connectWiFi();
+    }
+    else if (choice == "3") {
+      disConnectWifi();
+    }
+    else if (choice == "4") {
+      isShowMenu = false;
+      isRunning = true;
+      runDevices();
+    }
+    else {
+      Serial.println("\nInvalid option.");
+    }
+  }
+
+  if (isRunning) {
+    client.loop();
+    connectMQTT();
+
+    int currentTime = millis();
+    int currentButtonState = digitalRead(BUTTON_PIN);
+    if (currentButtonState == LOW && lastButtonState == HIGH) {
+      isLCDOn = !isLCDOn;
+      if (isLCDOn) {
+        lcd.backlight();
+      } else {
+        lcd.clear();
+        lcd.noBacklight();
+      }
+    }
+    lastButtonState = currentButtonState;
+
+    if (isLCDOn) {
+      updateLCD();
+    }
+
+    if (currentTime - lastTime >= 5000) {
+      sendSensorsMQTT();
+      updateLCD();
+      lastTime = currentTime;
+    }
+  }
 }
