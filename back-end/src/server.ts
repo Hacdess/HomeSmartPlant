@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth_routes';
 import cookieParser from 'cookie-parser';
-import { mqttClient } from './config/mqtt';
+import { mqttClient } from './config/mqtt_config';
 import { MqttServices } from './services/mqtt_services';
 import { config } from './config/config';
 
