@@ -124,56 +124,71 @@ const formatDateTime = (isoString: string): string => {
 
 export default function Dashboard() {
   // 1. state management
+  const [sensorRecords, setSensorRecords] = useState([]);
+  const [sensorLimit, setSensorLimit] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("null");
+  const [pump, setPump] = useState<DeviceData | null>(null);
+  const [light, setLight] = useState<DeviceData | null>(null); 
+  const [logs, setLogs] = useState<LogData[]>([]);
+
+
   const [sensorData, setSensorData] = useState<SensorData>(MOCK_SENSOR_DATA);
-  const [devices, setDevices] = useState<DeviceData[]>(MOCK_DEVICES); 
   const [chartData, setChartData] = useState(MOCK_CHART_DATA);
-  const [logs, setLogs] = useState<LogData[]>(MOCK_LOGS);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   // 2. API 
   // fectch sensor data
-  const fetchSensors = async () => {
+  const fetchSensorLimit = async () => {
     try {
-      // TODO: Uncomment khi có API thật
-      /*
-      const response = await fetch('/api/sensors/latest', {
+      const response = await fetch('/api/sensors/limit', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Server error');
       if (data.isSuccess) {
-        setSensorData(data.data);
+        setSensorLimit(data.data);
+        console.log(data.data);
       }
-      */
-
-      // MOCK DATA - Comment out khi dùng API
-      setSensorData(MOCK_SENSOR_DATA);
     } catch (e) {
       console.error('Failed to fetch sensor data:', e);
-      setError('Không thể tải dữ liệu cảm biến');
+      setError("Failed to load sensor limit");
+    }
+  };
+
+  const fetchSensorRecords = async () => {
+    try {
+      const response = await fetch('/api/sensors/all', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Server error');
+      if (data.isSuccess) {
+        setSensorRecords(data.data);
+        console.log(data.data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch sensor data:', e);
+      setError("Failed to load sensor records");
     }
   };
 
   // fetch devices data
   const fetchDevices = async () => {
     try {
-      // TODO: Uncomment khi có API thật
-      /*
-      const response = await fetch('/api/devices', {
+      const response = await fetch('/api/device/get', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Server error');
       if (data.isSuccess) {
-        setDevices(data.data);
+        setPump(data.data.rest_pump);
+        setLight(data.data.rest_light);
+        console.log(data.data.rest_pump);
+        console.log(data.data.rest_light);
       }
-      */
-
-      // MOCK DATA
-      setDevices(MOCK_DEVICES);
     } catch (e) {
       console.error('Failed to fetch devices:', e);
       setError('Failed to fetch devices');
@@ -182,9 +197,7 @@ export default function Dashboard() {
 
   const fetchLogs = async () => {
     try {
-      // TODO: Uncomment khi có API thật
-      /*
-      const response = await fetch('/api/logs?limit=50', {
+      const response = await fetch('/api/log/all', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -192,11 +205,8 @@ export default function Dashboard() {
       if (!response.ok) throw new Error(data.message || 'Server error');
       if (data.isSuccess) {
         setLogs(data.data);
+        console.log(data.data);
       }
-      */
-
-      // MOCK DATA
-      setLogs(MOCK_LOGS);
     } catch (e) {
       console.error('Failed to fetch logs:', e);
       setError('Failed to fetch logs');
@@ -236,27 +246,10 @@ export default function Dashboard() {
   };
    // Load All Data on Mount
   useEffect(() => {
-    const loadAllData = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchSensors(),
-        fetchDevices(),
-        fetchLogs(),
-        fetchChartData(),
-      ]);
-      setLoading(false);
-    };
-
-    loadAllData();
-
-    // Polling: Refresh data every 5 seconds
-    const interval = setInterval(() => {
-      fetchSensors();
-      fetchDevices();
-      fetchLogs();
-    }, 5000);
-
-    return () => clearInterval(interval);
+    fetchSensorLimit();
+    fetchSensorRecords();
+    fetchDevices();
+    fetchLogs();
   }, []);
 
   // 3. user actions handle
@@ -314,52 +307,52 @@ export default function Dashboard() {
   // Toggle Device (Auto/Manual)
   const handleToggleDevice = async (deviceId: string, mode?: 'auto' | 'manual') => {
     try {
-      const device = devices.find((d) => d.deviceId === deviceId);
-      if (!device) return;
+      // const device = devices.find((d) => d.deviceId === deviceId);
+      // if (!device) return;
 
-      let newStatus = device.status;
-      let newValue = device.value;
+      // let newStatus = device.status;
+      // let newValue = device.value;
 
-      if (mode === 'auto') { // mode = 1 là auto
-        newStatus = device.value !== 1;
-        newValue = newStatus ? 1 : 0;
-      } else if (mode === 'manual') { // mode = 0 là manual
-        newStatus = !device.status;
-        newValue = 0;
-      } else { // Toggle status only
-        newStatus = !device.status;
-      }
+      // if (mode === 'auto') { // mode = 1 là auto
+      //   newStatus = device.value !== 1;
+      //   newValue = newStatus ? 1 : 0;
+      // } else if (mode === 'manual') { // mode = 0 là manual
+      //   newStatus = !device.status;
+      //   newValue = 0;
+      // } else { // Toggle status only
+      //   newStatus = !device.status;
+      // }
 
-      const payload = {
-        deviceId,
-        status: newStatus,
-        value: newValue,
-      };
+      // const payload = {
+      //   deviceId,
+      //   status: newStatus,
+      //   value: newValue,
+      // };
 
-      // TODO: Uncomment khi có API thật
-      /*
-      const response = await fetch(`/api/devices/${deviceId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Update failed');
-      if (data.isSuccess) {
-        console.log('Device updated successfully');
-        await fetchDevices(); // Reload
-      }
-      */
+      // // TODO: Uncomment khi có API thật
+      // /*
+      // const response = await fetch(`/api/devices/${deviceId}`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(payload),
+      // });
+      // const data = await response.json();
+      // if (!response.ok) throw new Error(data.message || 'Update failed');
+      // if (data.isSuccess) {
+      //   console.log('Device updated successfully');
+      //   await fetchDevices(); // Reload
+      // }
+      // */
 
-      // MOCK - Optimistic update
-      setDevices(
-        devices.map((d) =>
-          d.deviceId === deviceId
-            ? { ...d, status: newStatus, value: newValue }
-            : d
-        )
-      );
-      console.log('Toggled device:', deviceId, mode, newStatus, newValue);
+      // // MOCK - Optimistic update
+      // setDevices(
+      //   devices.map((d) =>
+      //     d.deviceId === deviceId
+      //       ? { ...d, status: newStatus, value: newValue }
+      //       : d
+      //   )
+      // );
+      // console.log('Toggled device:', deviceId, mode, newStatus, newValue);
     } catch (e) {
       console.error('Failed to toggle device:', e);
       alert('Không thể điều khiển thiết bị');
@@ -371,7 +364,6 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950">
-        <Header />
         <div className="flex items-center justify-center h-96">
           <div className="text-slate-400 text-lg">Loading...</div>
         </div>
@@ -382,7 +374,6 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="min-h-screen bg-slate-950">
-        <Header />
         <div className="flex items-center justify-center h-96">
           <div className="text-red-500 text-lg">{error}</div>
         </div>
@@ -390,13 +381,8 @@ export default function Dashboard() {
     );
   }
 
-  // get device by name
-  const growLight = devices.find((d) => d.deviceName === 'growLight');
-  const waterPump = devices.find((d) => d.deviceName === 'waterPump');
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <Header />
 
       {/* Title */}
       <div className="max-w-7xl mx-auto p-6">

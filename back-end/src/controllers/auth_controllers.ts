@@ -87,7 +87,7 @@ export const AuthControllers = {
         content: "User signed in"
       }
 
-      await LogServices.writeLog(log);
+      await LogServices.write(log);
 
       return res.status(200).json(successResponse(payload, "Signed in successfully"));
 
