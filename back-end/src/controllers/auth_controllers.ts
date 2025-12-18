@@ -21,7 +21,7 @@ export const AuthControllers = {
         if (existingUser.data?.user_name === user_name)
           return res.status(409).json(errorResponse("Username existed"));
         if (existingUser.data?.phone)
-          return res.status(409).json(errorResponse("Phpne existed"));
+          return res.status(409).json(errorResponse("Phone existed"));
       }
 
       const encryptedPassword = await AuthServices.hashPassword(password);

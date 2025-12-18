@@ -1,32 +1,38 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth_routes';
 import cookieParser from 'cookie-parser';
 import { mqttClient } from './config/mqtt';
 import { MqttServices } from './services/mqtt_services';
-
-dotenv.config();
+import { config } from './config/config';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
+// ===== Middleware =====
 app.use(cors());
 app.use(express.json()); // Để đọc được body json
 app.use(cookieParser());
 
+// ===== MQTT =====
 MqttServices.init();
+mqttClient.on("connect", () => {
+  console.log("MQTT connected to HiveMQ");
+});
 
+mqttClient.on("error", (err) => {
+  console.error("MQTT error:", err.message);
+});
+
+mqttClient.on("reconnect", () => {
+  console.log("MQTT reconnecting...");
+});
+
+
+// ===== SERVER EXPRESS =====
 // Setup Router API
 // Tất cả api auth sẽ bắt đầu bằng /api/auth
 app.use('/api/auth', authRoutes);
 
-// Route mặc định check server
-app.get('/', (req, res) => {
-  res.send('Supabase Auth API is running...');
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(config.PORT, () => {
+  console.log(`Server is running on port ${config.PORT}`);
 });
