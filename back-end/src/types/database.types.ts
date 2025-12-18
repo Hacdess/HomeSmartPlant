@@ -54,6 +54,8 @@ export type Database = {
           temp_max: number
           temp_min: number
           user_id: string
+          water_level_max: number
+          water_level_min: number
         }
         Insert: {
           humid_max?: number
@@ -65,6 +67,8 @@ export type Database = {
           temp_max?: number
           temp_min?: number
           user_id: string
+          water_level_max?: number
+          water_level_min?: number
         }
         Update: {
           humid_max?: number
@@ -76,6 +80,8 @@ export type Database = {
           temp_max?: number
           temp_min?: number
           user_id?: string
+          water_level_max?: number
+          water_level_min?: number
         }
         Relationships: [
           {
@@ -96,6 +102,7 @@ export type Database = {
           soil_moisture: number
           temperature: number
           user_id: string
+          water_level: number
         }
         Insert: {
           humid: number
@@ -105,6 +112,7 @@ export type Database = {
           soil_moisture: number
           temperature: number
           user_id: string
+          water_level: number
         }
         Update: {
           humid?: number
@@ -114,6 +122,7 @@ export type Database = {
           soil_moisture?: number
           temperature?: number
           user_id?: string
+          water_level?: number
         }
         Relationships: [
           {
@@ -150,6 +159,32 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "system_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_esp: {
+        Row: {
+          created_at: string | null
+          esp_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          esp_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          esp_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_esp_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

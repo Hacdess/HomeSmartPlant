@@ -13,13 +13,12 @@ export type SensorLimit = {
 }
 
 export type SensorRecord = {
-  rec_id: number;
   user_id: string;
   humid: number;
   light: number;
-  recorded_at: string | null;
   soil_moisture: number;
   temperature: number;
+  water_level: number;
 }
 
 export const SensorServices = {
@@ -39,7 +38,7 @@ export const SensorServices = {
     return supabase.from("sensor_records").select('*').eq("user_id", user_id).order("recorded_at", { ascending: false }).limit(1).single();
   },
 
-  insertRecordByID: async function(user_id: string, record: any) {
-    return supabase.from("sensor_limits").insert(record).eq("usser_id", user_id);
+  insertRecord: async function(record: any) {
+    return supabase.from("sensor_records").insert(record);
   }
 }
