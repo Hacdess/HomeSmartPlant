@@ -6,7 +6,7 @@ import z, { ZodError } from "zod";
 import UserServices from "../services/user_services";
 import { error } from "console";
 import { LogServices, type supabaseLog } from "../services/log_services";
-import { supabase } from "../config/supabase";
+import { MailServices } from "../services/email_services";
 
 export const AuthControllers = {
   signUp: async (req: Request, res: Response) => {
@@ -21,7 +21,7 @@ export const AuthControllers = {
         if (existingUser.data?.user_name === user_name)
           return res.status(409).json(errorResponse("Username existed"));
         if (existingUser.data?.phone)
-          return res.status(409).json(errorResponse("Phpne existed"));
+          return res.status(409).json(errorResponse("Phone existed"));
       }
 
       const encryptedPassword = await AuthServices.hashPassword(password);
@@ -67,6 +67,8 @@ export const AuthControllers = {
         email: existingUser.data.email
       }
       const token = await AuthServices.generateToken(payload)
+
+      await MailServices.sendAlert("nguyenhuuanhtri866@gmail.com", "TKin mới đăng nhập");
 
       const isProduction = process.env.NODE_ENV === 'production';
       const cookieOptions = {

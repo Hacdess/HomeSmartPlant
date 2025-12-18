@@ -1,5 +1,4 @@
 import { config } from "../config/config";
-import { supabase } from "../config/supabase";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 

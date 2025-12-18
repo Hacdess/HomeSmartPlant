@@ -8,15 +8,3 @@ export const mqttClient: MqttClient = mqtt.connect(config.MQTT_URL, {
   clean: true,
   reconnectPeriod: 5000, // auto reconnect
 });
-
-mqttClient.on("connect", () => {
-  console.log("MQTT connected to HiveMQ");
-});
-
-mqttClient.on("error", (err) => {
-  console.error("MQTT error:", err.message);
-});
-
-mqttClient.on("reconnect", () => {
-  console.log("MQTT reconnecting...");
-});

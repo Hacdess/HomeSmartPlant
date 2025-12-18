@@ -16,7 +16,6 @@ export default function Header() {
       })
 
       const data = await response.json();
-      console.log(data)
 
       if (!response.ok) throw new Error(data.message || "Server error")
 
@@ -60,20 +59,20 @@ export default function Header() {
         <h1 className="text-font text-xl text-primary"> SmartPlant</h1>
       </Link>
       <div className="flex flex-row justify-center items-center gap-5">
-        {user === null
+        {user
           ? <>
+            <Link to="/profile">
+              <User/>
+            </Link>
+            <h2>{user.user_name}</h2>
+          </>
+          : <>
             <Link to="sign-in" className="text-muted-foreground hover:text-green-600">
                 Đăng nhập
             </Link>
             <Link to="/sign-up" className="text-foreground bg-green-600 px-4 py-2 rounded hover:bg-green-700">
                 Đăng ký
             </Link>
-          </>
-          : <>
-            <Link to="/profile">
-              <User/>
-            </Link>
-            <h2>{user.user_name}</h2>
           </>
         }
       </div>
