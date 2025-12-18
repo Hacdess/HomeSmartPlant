@@ -15,7 +15,9 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     try {
     
       const payload:MyTokenPayload = await AuthServices.validateToken(token) as MyTokenPayload;
-      
+
+      if (!payload) throw new Error("Token: Invalid payload");
+
       res.locals.user = payload;
       res.locals.authenticated = true; // Lưu thông tin user để dùng ở bước sau
 

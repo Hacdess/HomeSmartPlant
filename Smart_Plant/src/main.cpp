@@ -230,7 +230,8 @@ void connectMQTT() {
 
     if (client.connect(deviceID, mqttUser, mqttPass)) {
       Serial.println("connected!");
-      client.subscribe((String(deviceID) + "/bind").c_str());
+      //client.subscribe((String(deviceID) + "/bind").c_str());
+      client.subscribe((String(deviceID) + "/#").c_str());
       StaticJsonDocument<64> doc;
       doc["device_id"] = deviceID;
 
@@ -257,24 +258,24 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, msg);
 
-  if (String(topic) == String(deviceID) + "/bind") {
-    if (userID == "")
-    {
-      userID = doc["user_id"] | "";
-      Serial.print("[MQTT] Bound to user ID: ");
-      Serial.println(userID);
-      client.subscribe((String(userID) + "/#").c_str());
-    }
-  }
+  // if (String(topic) == String(deviceID) + "/bind") {
+  //   if (userID == "")
+  //   {
+  //     userID = doc["user_id"] | "";
+  //     Serial.print("[MQTT] Bound to user ID: ");
+  //     Serial.println(userID);
+  //     client.subscribe((String(userID) + "/#").c_str());
+  //   }
+  // }
 
   // --- Remote Pump Control ---
-  if (String(topic) == String(userID) + "/pump") {
+  if (String(topic) == String(deviceID) + "/pump") {
     if (doc["action"] == "ON")  digitalWrite(RELAY_PUMP, HIGH);
     if (doc["action"] == "OFF") digitalWrite(RELAY_PUMP, LOW);
   }
 
     // -------- Light Control --------
-  if (String(topic) == String(userID) + "/light") {
+  if (String(topic) == String(deviceID) + "/light") {
     Serial.println("[MQTT] Light control command received.");
     Serial.println("[MQTT] Action: " + String((const char*)doc["action"]));
     if (doc["action"] == "ON")  digitalWrite(RELAY_LIGHT, HIGH);
@@ -283,10 +284,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 }
 
 void sendSensorsMQTT() {
-  if (userID == "") {
-    Serial.println("[MQTT] User ID not bound yet. Cannot send sensor data.");
-    return;
-  }
+
   StaticJsonDocument<256> doc;
   doc["light"] = readLight();
   doc["soil"]  = readSoil();
@@ -296,7 +294,7 @@ void sendSensorsMQTT() {
 
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
-  client.publish((String(userID)+"/sensor").c_str(), buffer);
+  client.publish((String(deviceID)+"/sensor").c_str(), buffer);
 
   Serial.println("[MQTT] Sensor data sent!");
 }

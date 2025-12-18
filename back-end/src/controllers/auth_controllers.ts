@@ -70,10 +70,9 @@ export const AuthControllers = {
 
       await MailServices.sendAlert("nguyenhuuanhtri866@gmail.com", "TKin mới đăng nhập");
 
-      const isProduction = process.env.NODE_ENV === 'production';
       const cookieOptions = {
         httpOnly: true, // Quan trọng: JS không đọc được (chống XSS)
-        secure: isProduction, // Production bắt buộc dùng HTTPS
+        secure: process.env.NODE_ENV === 'production', // Production bắt buộc dùng HTTPS
         sameSite: 'strict' as const, // Chống CSRF (dùng 'lax' nếu redirect từ web khác)
       };
 
@@ -88,7 +87,7 @@ export const AuthControllers = {
         content: "User signed in"
       }
 
-      await LogServices.writeLog(log);
+      await LogServices.write(log);
 
       return res.status(200).json(successResponse(payload, "Signed in successfully"));
 
@@ -98,6 +97,23 @@ export const AuthControllers = {
         return res.status(400).json(errorResponse(messages));
       }
       return res.status(500).json(errorResponse(e.message));
+    }
+  },
+
+  signOut: async (req: Request, res: Response) => {
+    try {
+      const cookies = req.cookies;
+      for (let cookie in cookies) {
+        res.cookie(cookie, '', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          expires: new Date(0),
+          path: '/',
+        });
+      }
+      res.status(200).json(successResponse(null, 'Logged out, all cookies cleared'));
+    } catch (e) {
+      return res.status(500).json(errorResponse(String(e)));
     }
   },
 

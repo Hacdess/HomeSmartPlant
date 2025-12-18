@@ -37,16 +37,16 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      // const res = await fetch('/api/auth/logout', {
-      //   method: 'POST',
-      //   credentials: 'include',
-      // });
+      const res = await fetch('/api/auth/signout', {
+        method: 'POST',
+        credentials: 'include',
+      });
 
-      // const result = await res.json();
-      // if (res.ok && result.isSuccess) {
+      const result = await res.json();
+      if (res.ok && result.isSuccess) {
         setUser(null);
         navigate('/');
-      // }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -65,6 +65,12 @@ export default function Header() {
               <User/>
             </Link>
             <h2>{user.user_name}</h2>
+            <button
+              className="border p-2"
+              onClick={handleLogout}
+            >
+              Sign out
+            </button>
           </>
           : <>
             <Link to="sign-in" className="text-muted-foreground hover:text-green-600">

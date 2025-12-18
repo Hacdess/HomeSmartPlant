@@ -1,0 +1,7 @@
+bind: esp publish esp_id = subcribe => web [0] : WEB NHAN DIEN ESP
+esp_id: esp subcribe <= user_id <= publish web : ESP NHAN USER
+esp co id
+
+user_id/sensor publish => record => subcribe web
+user_id/GROW_LIGHT subcribe <= config <= publish web
+user_id/PUMP subcribe <= config <= publish web
