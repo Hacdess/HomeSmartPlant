@@ -1,4 +1,4 @@
-export interface LogsData { // from system_logs table
+export interface LogData { // from system_logs table
     logId: string;  
     userId: string;
     type: string;
