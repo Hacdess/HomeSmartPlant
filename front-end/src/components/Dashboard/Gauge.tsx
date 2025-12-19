@@ -229,3 +229,86 @@ export function Gauge({
     </>
   );
 }
+
+// import React from 'react';
+// // Import thư viện (nhớ là bạn đã fix type ở bước trước rồi nhé)
+// import GaugeComponent from 'react-gauge-component';
+
+// interface GaugeProps {
+//   title: string;
+//   value: number;
+//   min: number; // Ngưỡng an toàn dưới (ví dụ: 20 độ)
+//   max: number; // Ngưỡng an toàn trên (ví dụ: 30 độ)
+//   unit: string;
+//   // Các props hiển thị khác
+//   icon?: string; 
+//   onThresholdChange?: (min: number, max: number) => void; // Để sau này làm tính năng chỉnh ngưỡng
+// }
+
+// export const Gauge: React.FC<GaugeProps> = ({ title, value, min, max, unit }) => {
+  
+//   // 1. Tính toán phạm vi hiển thị của đồng hồ
+//   // Ví dụ: Min cài là 20, Max là 30. 
+//   // Thì đồng hồ nên hiển thị từ 0 đến 50 để nhìn cho đẹp.
+//   const gaugeMin = min * 0.8;
+//   const gaugeMax = max * 1.2; // Tự động mở rộng max scale
+
+//   return (
+//     <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700 flex flex-col items-center">
+//       {/* Title & Value */}
+//       <h3 className="text-slate-400 text-sm font-medium mb-2">{title}</h3>
+//       <div className="text-3xl font-bold text-slate-100 mb-2">
+//         {value} <span className="text-lg text-slate-500 font-normal">{unit}</span>
+//       </div>
+
+//       {/* Gauge Library */}
+//       <div className="w-full max-w-[250px]">
+//         <GaugeComponent
+//           type="radial"
+//           value={value}
+//           minValue={gaugeMin}
+//           maxValue={gaugeMax}
+//           arc={{
+//             gradient: false,
+//             colorArray: ['#EA4228', '#ffea00ff', '#5BE12C', '#ffea00ff', '#EA4228'], // Đỏ -> Xanh -> Đỏ
+//             subArcs: [
+//               { limit: min },   // Vùng nguy hiểm thấp (0 -> min)
+//               { limit: min + (max - min)/ 3 },
+//               { limit: min + (max - min) * 2/ 3 },
+//               { limit: max },    // Vùng an toàn (min -> max)
+//               {},                // Vùng nguy hiểm cao (max -> hết)
+//             ],
+//             padding: 0,
+//             width: 0.4, // LƯU Ý: width: 0 sẽ làm mất vòng cung, nên để 0.2 hoặc 0.3
+//             cornerRadius: 0
+//           }}
+//           pointer={{
+//             type: "arrow",
+//             color: "#94a3b8", // Màu kim xám cho hợp dark mode
+//             elastic: true,
+//             animationDelay: 0
+//           }}
+//           labels={{
+//             valueLabel: { 
+//               formatTextValue: (val) => val + unit,
+//               style: { fill: '#cbd5e1', textShadow: 'none' } // Chỉnh màu số
+//             },
+//             tickLabels: {
+//               type: "outer",
+//               defaultTickValueConfig: { 
+//                 formatTextValue: (val: any) => Math.round(val).toString(),
+//                 style: { fontSize: 10, fill: '#64748b' } 
+//               }
+//             }
+//           }}
+//         />
+//       </div>
+
+//       {/* Footer Info (Optional) */}
+//       <div className="mt-2 text-xs text-slate-500 flex gap-4">
+//         <span>Min: {min}</span>
+//         <span>Max: {max}</span>
+//       </div>
+//     </div>
+//   );
+// };

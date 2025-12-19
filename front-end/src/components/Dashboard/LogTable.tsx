@@ -1,26 +1,9 @@
 import { AlertCircle } from 'lucide-react';
 import type { LogData } from '../../types/logs.type';
+import { formatDateTime } from '../../pages/Dashboard';
 
-interface LogEntry {
-  logId: string;
-  userId: string;
-  type: string;
-  message: string;
-  timestamp: string;
-  formattedDateTime: string;
-  typeDisplay: string;
-  relativeTime?: string;
-}
 
-interface LogTableProps {
-  logs: Array<LogData & {
-    formattedDateTime: string;
-    typeDisplay: string;
-    relativeTime: string;
-  }>;
-}
-
-export default function LogTable({ logs }: LogTableProps) {
+export default function LogTable({ logs }: {logs: LogData[]}) {
   const getTypeBadgeClass = (type: string) => {
     switch (type.toLowerCase()) {
       case 'warning':
@@ -52,8 +35,8 @@ export default function LogTable({ logs }: LogTableProps) {
           <thead>
             <tr className="border-b border-slate-700">
               <th className="text-left py-3 px-4 text-slate-300 font-medium">No.</th>
-              <th className="text-left py-3 px-4 text-slate-300 font-medium">ID</th>
               <th className="text-left py-3 px-4 text-slate-300 font-medium">Date Time</th>
+              <th className="text-left py-3 px-4 text-slate-300 font-medium">Type</th>
               <th className="text-left py-3 px-4 text-slate-300 font-medium">Content</th>
             </tr>
           </thead>
@@ -68,17 +51,14 @@ export default function LogTable({ logs }: LogTableProps) {
             ) : (
               logs.map((log, index)=> (
                 <tr
-                  key={log.logId}
+                  key={index}
                   className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors"
                 > 
                   {/* Index */}
                   <td className="py-3 px-4 text-slate-400">{index + 1}</td>
-                  {/* Log ID */}
-                  <td className="py-3 px-4 text-slate-400">{log.logId}</td>
                   {/* Date Time */}
                   <td className="py-3 px-4 text-slate-400">
-                    <div>{log.formattedDateTime}</div>
-                    <div className="text-xs text-slate-500">{log.relativeTime}</div>
+                    <div>{formatDateTime(log.created_at? log.created_at : "")}</div>
                   </td>
                   {/* Type & Content */}
                   <td className="py-3 px-4">
@@ -88,9 +68,13 @@ export default function LogTable({ logs }: LogTableProps) {
                           log.type
                         )}`}
                       >
-                        {log.typeDisplay}
+                        {log.type}
                       </span>
-                      <span className="text-slate-300">{log.message}</span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-300">{log.content}</span>
                     </div>
                   </td>
                 </tr>

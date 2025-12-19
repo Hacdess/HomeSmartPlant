@@ -1,104 +1,14 @@
 // DASHBOARD: PAGE CHINH, HIEN THI THONG CAC SENSOR
-import { useAuth } from "../contexts/AuthContext";
 import { useState, useEffect } from "react";
-import PageLayout from "../layout/PageLayout";
-import Header from "../layout/Header";
-import Footer from "../layout/Footer";
 import { Gauge } from "../components/Dashboard/Gauge";
 import DeviceController from "../components/Dashboard/DeviceController";
 import Chart from "../components/Dashboard/Chart";
 import LogTable from "../components/Dashboard/LogTable";
-import type { SensorData } from "src/types/sensors.type";
 import type { DeviceData } from "src/types/outDevices.type";
 import type { LogData } from "src/types/logs.type";
-
-// ============================================
-// MOCK DATA (Comment out khi dùng API thật)
-// ============================================
-const MOCK_SENSOR_DATA: SensorData = {
-  recId: '1',
-  userId: 'user123',
-  sensorId: 'sensor001',
-  temperature: 78,
-  humidity: 380,
-  lightIntensity: 380,
-  soilMoisture: 78,
-  waterLevel: 50,
-  timestamp: new Date().toISOString(),
-  tempMin: 0,
-  tempMax: 100,
-  humidMin: 0,
-  humidMax: 600,
-  lightMin: 0,
-  lightMax: 800,
-  soilMin: 0,
-  soilMax: 100,
-  waterLevelMin: 0,
-  waterLevelMax: 100,
-};
-
-const MOCK_DEVICES: DeviceData[] = [
-  {
-    deviceId: 'dev001',
-    userId: 'user123',
-    deviceName: 'growLight',
-    status: true,
-    value: 1, // 1 = auto mode, 0 = manual
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    deviceId: 'dev002',
-    userId: 'user123',
-    deviceName: 'waterPump',
-    status: false,
-    value: 0,
-    lastUpdated: new Date().toISOString(),
-  },
-];
-
-const MOCK_LOGS: LogData[] = [
-  {
-    logId: '1',
-    userId: 'user123',
-    type: 'warning',
-    message: 'Too High Temperature',
-    timestamp: '2025-11-14T04:30:50Z',
-  },
-  {
-    logId: '2',
-    userId: 'user123',
-    type: 'success',
-    message: 'Watered the plants successfully',
-    timestamp: '2025-11-14T05:05:00Z',
-  },
-  {
-    logId: '3',
-    userId: 'user123',
-    type: 'warning',
-    message: 'Low Soil Moisture',
-    timestamp: '2025-11-13T21:46:00Z',
-  },
-  {
-    logId: '4',
-    userId: 'user123',
-    type: 'success',
-    message: 'System is operating normally',
-    timestamp: '2025-11-13T04:46:50Z',
-  },
-];
-
-const MOCK_CHART_DATA = [
-  { date: 'Nov 7', temperature: 60, light: 350, humidity: 450, soilMoisture: 50, waterLevel: 45 },
-  { date: 'Nov 8', temperature: 65, light: 400, humidity: 470, soilMoisture: 55, waterLevel: 48 },
-  { date: 'Nov 9', temperature: 62, light: 380, humidity: 460, soilMoisture: 52, waterLevel: 50 },
-  { date: 'Nov 10', temperature: 68, light: 420, humidity: 490, soilMoisture: 48, waterLevel: 47 },
-  { date: 'Nov 11', temperature: 64, light: 390, humidity: 480, soilMoisture: 54, waterLevel: 49 },
-  { date: 'Nov 12', temperature: 70, light: 410, humidity: 500, soilMoisture: 51, waterLevel: 52 },
-  { date: 'Nov 13', temperature: 67, light: 395, humidity: 485, soilMoisture: 53, waterLevel: 51 },
-];
+import type { SensorRecord, SensorLimit } from "src/types/sensors.type";
 
 
-// HELPER FUNCTION
 // Tính trạng thái Gauge dựa trên giá trị sensor và ngưỡng
 const calculateStatus = (value: number, min: number, max: number): string => {
   const range = max - min;
@@ -110,8 +20,8 @@ const calculateStatus = (value: number, min: number, max: number): string => {
 };
 
 // format date dạng: HH:MM:SS DD/MM/YYYY
-const formatDateTime = (isoString: string): string => {
-  const date = new Date(isoString);
+export const formatDateTime = (inputDate: string): string => {
+  const date = new Date(inputDate);
   return date.toLocaleString('vi-VN', {
     hour: '2-digit',
     minute: '2-digit',
@@ -124,17 +34,14 @@ const formatDateTime = (isoString: string): string => {
 
 export default function Dashboard() {
   // 1. state management
-  const [sensorRecords, setSensorRecords] = useState([]);
-  const [sensorLimit, setSensorLimit] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("null");
+  const [sensorRecords, setSensorRecords] = useState<SensorRecord[]>([]);
+  const [sensorLimit, setSensorLimit] = useState<SensorLimit | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [pump, setPump] = useState<DeviceData | null>(null);
   const [light, setLight] = useState<DeviceData | null>(null); 
   const [logs, setLogs] = useState<LogData[]>([]);
 
-
-  const [sensorData, setSensorData] = useState<SensorData>(MOCK_SENSOR_DATA);
-  const [chartData, setChartData] = useState(MOCK_CHART_DATA);
 
   // 2. API 
   // fectch sensor data
@@ -146,6 +53,7 @@ export default function Dashboard() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Server error');
+
       if (data.isSuccess) {
         setSensorLimit(data.data);
         console.log(data.data);
@@ -214,90 +122,73 @@ export default function Dashboard() {
   };
 
   // fetch chart data
-  const fetchChartData = async () => {
-    try {
-      // TODO: Uncomment khi có API thật
-      /*
-      const response = await fetch('/api/sensors/history?days=7', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Server error');
-      if (data.isSuccess) {
-        // Transform data to chart format
-        const chartData = data.data.map((record: SensorData) => ({
-          date: new Date(record.timestamp).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' }),
-          temperature: record.temperature,
-          light: record.lightIntensity,
-          humidity: record.humidity,
-          soilMoisture: record.soilMoisture,
-          waterLevel: record.waterLevel,
-        }));
-        setChartData(chartData);
-      }
-      */
+  // const fetchChartData = async () => {
+  //   try {
+  //     // TODO: Uncomment khi có API thật
+  //     /*
+  //     const response = await fetch('/api/sensors/history?days=7', {
+  //       method: 'GET',
+  //       headers: { 'Content-Type': 'application/json' },
+  //     });
+  //     const data = await response.json();
+  //     if (!response.ok) throw new Error(data.message || 'Server error');
+  //     if (data.isSuccess) {
+  //       // Transform data to chart format
+  //       const chartData = data.data.map((record: SensorData) => ({
+  //         date: new Date(record.timestamp).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' }),
+  //         temperature: record.temperature,
+  //         light: record.lightIntensity,
+  //         humidity: record.humidity,
+  //         soilMoisture: record.soilMoisture,
+  //         waterLevel: record.waterLevel,
+  //       }));
+  //       setChartData(chartData);
+  //     }
+  //     */
 
-      // MOCK DATA
-      setChartData(MOCK_CHART_DATA);
-    } catch (e) {
-      console.error('Failed to fetch chart data:', e);
+  //     // MOCK DATA
+  //     // setChartData(MOCK_CHART_DATA);
+  //   } catch (e) {
+  //     console.error('Failed to fetch chart data:', e);
+  //   }
+  // };
+   // Load All Data on Mount
+
+  const loadDashboard = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchSensorLimit(),
+        fetchSensorRecords(),
+        fetchDevices(),
+        fetchLogs(),
+      ]);
+    } catch(e: any) {
+      console.error(e);
+    } finally {
+      setLoading(false);
     }
   };
-   // Load All Data on Mount
   useEffect(() => {
-    fetchSensorLimit();
-    fetchSensorRecords();
-    fetchDevices();
-    fetchLogs();
+    loadDashboard();
   }, []);
 
   // 3. user actions handle
-  const handleUpdateSensorLimits = async (
-    sensorType: 'temperature' | 'humidity' | 'light' | 'soilMoisture' | 'waterLevel',
-    min: number,
-    max: number
-  ) => {
+  const handleUpdateSensorLimits = async () => {
     try {
-      // Build payload
-      const fieldMap = {
-        temperature: { min: 'tempMin', max: 'tempMax' },
-        humidity: { min: 'humidMin', max: 'humidMax' },
-        light: { min: 'lightMin', max: 'lightMax' },
-        soilMoisture: { min: 'soilMin', max: 'soilMax' },
-        waterLevel: { min: 'waterLevelMin', max: 'waterLevelMax' },
-      };
 
-      const fields = fieldMap[sensorType];
-      const payload = {
-        [fields.min]: min,
-        [fields.max]: max,
-      };
-
-      // TODO: Uncomment khi có API thật
-      /*
-      const response = await fetch('/api/sensors/limits', {
+      const response = await fetch('/api/sensors/limit', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(sensorLimit),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Update failed');
       if (data.isSuccess) {
         console.log('Limits updated successfully');
-        await fetchSensorData(); // Reload data
       }
-      */
 
-      // MOCK - Optimistic update
-      if (sensorData) {
-        setSensorData({
-          ...sensorData,
-          [fields.min]: min,
-          [fields.max]: max,
-        });
-      }
-      console.log('Updated limits:', sensorType, min, max);
+
     } catch (e) {
       console.error('Failed to update sensor limits:', e);
       alert('Failed to update sensor limits');
@@ -305,7 +196,7 @@ export default function Dashboard() {
   };
 
   // Toggle Device (Auto/Manual)
-  const handleToggleDevice = async (deviceId: string, mode?: 'auto' | 'manual') => {
+  const handleToggleDevice = async () => {
     try {
       // const device = devices.find((d) => d.deviceId === deviceId);
       // if (!device) return;
@@ -371,7 +262,7 @@ export default function Dashboard() {
     );
   }
   // Error state
-  if (error) {
+  if (error != "") {
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="flex items-center justify-center h-96">
@@ -392,121 +283,179 @@ export default function Dashboard() {
       {/* 4 Gauges */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Temperature */}
-        <Gauge
+        
+        {/* <Gauge
           title="Temperature"
-          value={sensorData.temperature}
+          value={sensorRecords[0]?.temperature}
           unit="°C"
           status={calculateStatus(
-            sensorData.temperature,
-            sensorData.tempMin,
-            sensorData.tempMax
+            sensorRecords[0]?.temperature,
+            sensorLimit?.temp_min ?? 20,
+            sensorLimit?.temp_max ?? 50
           )}
-          min={sensorData.tempMin}
-          max={sensorData.tempMax}
+          min={sensorLimit?.temp_min ?? 20}
+          max={sensorLimit?.temp_max ?? 50}
           dangerThreshold1={
-            sensorData.tempMin + (sensorData.tempMax - sensorData.tempMin) * 0.3
+            sensorLimit?.temp_min ?? 20 + (sensorLimit?.temp_max ?? 50 - (sensorLimit?.temp_min ?? 20)) * 0.3
           }
           dangerThreshold2={
-            sensorData.tempMin + (sensorData.tempMax - sensorData.tempMin) * 0.8
+            (sensorLimit?.temp_min ?? 20) + (sensorLimit?.temp_max ?? 50 - (sensorLimit?.temp_min ?? 20)) * 0.8
           }
           icon="temperature"
           onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits('temperature', min, max)
+            handleUpdateSensorLimits()
           }
         />
-        {/* Light */}
         <Gauge
           title="Light Intensity"
-          value={sensorData.lightIntensity}
+          value={sensorRecords[0]?.light}
           unit="lux"
           status={calculateStatus(
-            sensorData.lightIntensity,
-            sensorData.lightMin,
-            sensorData.lightMax
+            sensorRecords[0]?.light,
+            sensorLimit?.light_min ?? 0,
+            sensorLimit?.light_max ?? 4095
           )}
-          min={sensorData.lightMin}
-          max={sensorData.lightMax}
+          min={sensorLimit?.light_min ?? 0}
+          max={sensorLimit?.light_max ?? 4095}
           dangerThreshold1={
-            sensorData.lightMin + (sensorData.lightMax - sensorData.lightMin) * 0.25
+            sensorLimit?.light_min ?? 0 + (sensorLimit?.light_max ?? 4095 - (sensorLimit?.light_min ?? 0)) * 0.25
           }
           dangerThreshold2={
-            sensorData.lightMin + (sensorData.lightMax - sensorData.lightMin) * 0.75
+            sensorLimit?.light_min ?? 0 + (sensorLimit?.light_max ?? 4095 - (sensorLimit?.light_min ?? 0)) * 0.75
           }
           icon="light"
           onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits('light', min, max)
+            handleUpdateSensorLimits()
           }
         />
 
-        {/* Humidity */}
         <Gauge
           title="Humidity"
-          value={sensorData.humidity}
+          value={sensorRecords[0]?.humid}
           unit="ppm"
           status={calculateStatus(
-            sensorData.humidity,
-            sensorData.humidMin,
-            sensorData.humidMax
+            sensorRecords[0]?.humid,
+            sensorLimit?.humid_min ?? 0,
+            sensorLimit?.humid_max ?? 100
           )}
-          min={sensorData.humidMin}
-          max={sensorData.humidMax}
+          min={sensorLimit?.humid_min ?? 0}
+          max={sensorLimit?.humid_max ?? 100}
           dangerThreshold1={
-            sensorData.humidMin + (sensorData.humidMax - sensorData.humidMin) * 0.3
+            sensorLimit?.humid_min ?? 0 + (sensorLimit?.humid_max ?? 100 - (sensorLimit?.humid_min ?? 100)) * 0.3
           }
           dangerThreshold2={
-            sensorData.humidMin + (sensorData.humidMax - sensorData.humidMin) * 0.8
+            sensorLimit?.humid_min ?? 0 + (sensorLimit?.humid_max ?? 100 - (sensorLimit?.humid_min ?? 100)) * 0.8
           }
           icon="humidity"
           onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits('humidity', min, max)
+            handleUpdateSensorLimits()
           }
         />
 
-        {/* Soil Moisture */}
         <Gauge
-          title="Độ ẩm đất"
-          value={sensorData.soilMoisture}
-          unit="%"
+          title="Mực nước"
+          value={sensorRecords[0]?.water_level}
+          unit="mm"
           status={calculateStatus(
-            sensorData.soilMoisture,
-            sensorData.soilMin,
-            sensorData.soilMax
+            sensorRecords[0]?.water_level,
+            sensorLimit?.water_level_min ?? 0,
+            sensorLimit?.water_level_max ?? 1600
           )}
-          min={sensorData.soilMin}
-          max={sensorData.soilMax}
+          min={sensorLimit?.water_level_min ?? 0}
+          max={sensorLimit?.water_level_max ?? 1600}
           dangerThreshold1={
-            sensorData.soilMin + (sensorData.soilMax - sensorData.soilMin) * 0.3
+            sensorLimit?.water_level_min ?? 0 + (sensorLimit?.water_level_max ?? 1600 - (sensorLimit?.water_level_min ?? 0)) * 0.3
           }
           dangerThreshold2={
-            sensorData.soilMin + (sensorData.soilMax - sensorData.soilMin) * 0.7
+            sensorLimit?.water_level_min ?? 0 + (sensorLimit?.water_level_max ?? 1600 - (sensorLimit?.water_level_min ?? 0)) * 0.7
           }
           icon="soilMoisture"
           onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits('soilMoisture', min, max)
+            handleUpdateSensorLimits()
           }
         />
+
+        <Gauge
+          title="Độ ẩm đất"
+          value={sensorRecords[0]?.soil_moisture}
+          unit="%"
+          status={calculateStatus(
+            sensorRecords[0]?.soil_moisture,
+            sensorLimit?.soil_min ?? 0,
+            sensorLimit?.soil_max ?? 100,
+          )}
+          min={sensorLimit?.soil_min ?? 0}
+          max={sensorLimit?.soil_max ?? 100}
+          dangerThreshold1={
+            sensorLimit?.soil_min ?? 0 + (sensorLimit?.soil_max ?? 100 - (sensorLimit?.soil_min ?? 0)) * 0.3
+          }
+          dangerThreshold2={
+            sensorLimit?.soil_min ?? 0 + (sensorLimit?.soil_max ?? 100 - (sensorLimit?.soil_min ?? 0)) * 0.7
+          }
+          icon="soilMoisture"
+          onThresholdChange={(min, max) =>
+            handleUpdateSensorLimits()
+          }
+        /> */}
+
+<Gauge
+    title="Nhiệt độ"
+    value={sensorRecords?.[0]?.temperature ?? 0}
+    unit="°C"
+    // Lấy giới hạn từ API, nếu chưa có thì dùng mặc định 20-35
+    min={sensorLimit?.temp_min ?? 20}
+    max={sensorLimit?.temp_max ?? 35}
+  />
+
+  {/* Humidity Gauge */}
+  <Gauge
+    title="Độ ẩm không khí"
+    value={sensorRecords?.[0]?.humid ?? 0}
+    unit="%"
+    min={sensorLimit?.humid_min ?? 40}
+    max={sensorLimit?.humid_max ?? 80}
+  />
+
+  {/* Light Gauge */}
+  <Gauge
+    title="Ánh sáng"
+    value={sensorRecords?.[0]?.light ?? 0}
+    unit=" Lux"
+    min={sensorLimit?.light_min ?? 0}
+    max={sensorLimit?.light_max ?? 3000}
+  />
+  
+  {/* Soil Moisture Gauge */}
+   <Gauge
+    title="Độ ẩm đất"
+    value={sensorRecords?.[0]?.soil_moisture ?? 0}
+    unit="%"
+    min={sensorLimit?.soil_min ?? 30}
+    max={sensorLimit?.soil_max ?? 70}
+  />
       </div>
+
+      
 
       {/* Device Controllers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Grow Light Controller */}
-        {growLight && (
+        {light && (
           <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
             <div className="flex items-center gap-2 mb-4 text-slate-300">
               <span className="text-yellow-400 text-2xl">☀️</span>
               <span className="text-lg font-semibold">GrowLight</span>
             </div>
 
-            {/* Auto Mode */}
             <DeviceController
               name="Auto Mode"
               description="Auto turn on/off based on environment light intensity"
-              enabled={growLight.value === 1}
-              onToggle={() => handleToggleDevice(growLight.deviceId, 'auto')}
+              status={light?.status}
+              onToggle={() => handleToggleDevice()}
             />
 
             {/* Manual Mode */}
-            <div className={growLight.value === 1 ? 'opacity-50 pointer-events-none' : ''}>
+            {/* <div className={light.value === 1 ? 'opacity-50 pointer-events-none' : ''}>
               <DeviceController
                 name="Turn On/Off"
                 description={
@@ -518,12 +467,12 @@ export default function Dashboard() {
                 onToggle={() => handleToggleDevice(growLight.deviceId, 'manual')}
                 disabled={growLight.value === 1}
               />
-            </div>
+            </div> */}
           </div>
         )}
       
         {/* Water Pump Controller */}
-        {waterPump && (
+        {pump && (
           <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
             <div className="flex items-center gap-2 mb-4 text-slate-300">
               <span className="text-blue-400 text-2xl">💧</span>
@@ -534,12 +483,12 @@ export default function Dashboard() {
             <DeviceController
               name="Auto Mode"
               description="Auto turn water pump on/off based in current soil moisture"
-              enabled={waterPump.value === 1}
-              onToggle={() => handleToggleDevice(waterPump.deviceId, 'auto')}
+              status={pump?.status}
+              onToggle={() => handleToggleDevice()}
               />
 
             {/* Manual Mode */}
-            <div className={waterPump.value === 1 ? 'opacity-50 pointer-events-none' : ''}>
+            {/* <div className={waterPump.value === 1 ? 'opacity-50 pointer-events-none' : ''}>
               <DeviceController
                 name="Turn On/Off"
                 description={
@@ -551,14 +500,14 @@ export default function Dashboard() {
                 onToggle={() => handleToggleDevice(waterPump.deviceId, 'manual')}
                 disabled={waterPump.value === 1}
               />
-            </div>
+            </div> */}
           </div>
         )}
       </div>
 
       {/* Chart */}
       <div className="mb-8">
-        <Chart data={chartData} />
+        <Chart data={sensorRecords} />
       </div>
 
       {/* Logs Table */}
@@ -566,7 +515,7 @@ export default function Dashboard() {
         <LogTable 
           logs={logs.map((log,) => ({
             ...log,
-            formattedDateTime: formatDateTime(log.timestamp),
+            formattedDateTime: formatDateTime(log.created_at? log.created_at : ""),
             typeDisplay: log.type.charAt(0).toUpperCase() + log.type.slice(1),
             relativeTime: '',
           }))} 

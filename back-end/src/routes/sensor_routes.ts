@@ -4,6 +4,7 @@ import { authMiddleware } from "../middleware/auth";
 const router = Router();
 
 router.get('/limit', authMiddleware, SensorControllers.getLimit);
+router.put('/limit', authMiddleware, SensorControllers.updateLimit);
 router.get('/all', authMiddleware, SensorControllers.getAll);
 router.get('/latest', authMiddleware, SensorControllers.getLatest);
 

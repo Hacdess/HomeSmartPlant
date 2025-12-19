@@ -27,7 +27,7 @@ export const SensorServices = {
   },
 
   updateLimitByID: async function(user_id: string, updateLimit: SensorLimit) {
-    return supabase.from("sensor_limits").update(updateLimit);
+    return supabase.from("sensor_limits").update(updateLimit).eq("user_id", user_id);
   },
 
   getAllRecordsByID: async function(user_id: string) {

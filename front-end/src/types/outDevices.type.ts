@@ -1,5 +1,5 @@
 export interface DeviceData { // from output_device
-    deviceName: string;
+    name: string;
     status: boolean;
-    lastUpdated: string;
+    updated_at: string | null;
 }

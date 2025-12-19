@@ -3,7 +3,7 @@ import { useState } from "react";
 interface DeviceControlProps {
   name: string;
   description?: string;
-  enabled: boolean;
+  status: boolean;
   onToggle: () => void;
   disabled?: boolean;
 }
@@ -15,7 +15,7 @@ interface DeviceControlProps {
 export default function DeviceController({
   name,
   description,
-  enabled,
+  status,
   onToggle,
   disabled = false,
 }: DeviceControlProps) {
@@ -34,13 +34,13 @@ export default function DeviceController({
         onClick={onToggle}
         disabled={disabled}
         className={`w-12 h-6 rounded-full transition-all ${
-          enabled ? 'bg-emerald-500' : 'bg-slate-600'
+          status ? 'bg-emerald-500' : 'bg-slate-600'
         } ${disabled ? 'cursor-not-allowed' : 'hover:brightness-110'}`}
       >
         {/* Switch Knob */}
         <div
           className={`w-5 h-5 bg-white rounded-full transition-transform ${
-            enabled ? 'translate-x-6' : 'translate-x-1'
+            status ? 'translate-x-6' : 'translate-x-1'
           }`}
         />
       </button>

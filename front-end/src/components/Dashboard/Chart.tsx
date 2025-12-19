@@ -8,43 +8,68 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { type SensorRecord } from '../../types/sensors.type';
+import { formatDateTime } from '../../pages/Dashboard';
+import { useMemo } from 'react';
 
-interface ChartDataPoint {
-  date: string;
-  temperature: number;
-  light: number;
-  humidity: number;
-  soilMoisture: number;
-  waterLevel: number;
-}
+// interface ChartDataPoint {
+//   date: string;
+//   temperature: number;
+//   light: number;
+//   humidity: number;
+//   soilMoisture: number;
+//   waterLevel: number;
+// }
 
-interface ChartProps {
-  data: ChartDataPoint[];
-}
+// interface ChartProps {
+//   data: ChartDataPoint[];
+// }
 // Custom tooltip content
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl">
-        <p className="text-slate-100 font-semibold mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center gap-2 text-sm">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="text-slate-300">
-              {entry.name}: <span className="font-medium text-slate-100">{entry.value}</span>
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+// const CustomTooltip = ({ active, payload, label }: any) => {
+//   if (active && payload && payload.length) {
+//     return (
+//       <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl">
+//         <p className="text-slate-100 font-semibold mb-2">{label}</p>
+//         {payload.map((entry: any, index: number) => (
+//           <div key={index} className="flex items-center gap-2 text-sm">
+//             <div
+//               className="w-3 h-3 rounded-full"
+//               style={{ backgroundColor: entry.color }}
+//             />
+//             <span className="text-slate-300">
+//               {entry.name}: <span className="font-medium text-slate-100">{entry.value}</span>
+//             </span>
+//           </div>
+//         ))}
+//       </div>
+//     );
+//   }
+//   return null;
+// };
 
-export default function Chart({ data }: ChartProps) {
+export default function Chart({ data }: {data : SensorRecord[]}) {
+  const chartData = useMemo(() => {
+    if (!data) return [];
+    
+    // Đảo ngược mảng nếu dữ liệu từ API là mới nhất trước (descending)
+    // Biểu đồ dòng cần vẽ từ trái qua phải (cũ -> mới)
+    const sortedData = [...data].reverse(); 
+
+    return sortedData.map(record => {
+      const dateObj = record.recorded_at ? new Date(record.recorded_at) : new Date();
+      return {
+        ...record,
+        // Tạo trường 'date' mà XAxis đang tìm kiếm
+        date: dateObj.toLocaleTimeString('vi-VN', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          day: '2-digit',
+          month: '2-digit'
+        }), // Kết quả ví dụ: "14:30 19/12"
+      };
+    });
+  }, [data]);
+
   if(data.length === 0) {
     return (
       <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 flex items-center justify-center h-80">
@@ -61,12 +86,13 @@ export default function Chart({ data }: ChartProps) {
       
       {/* Recharts LineChart */}
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
+        <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
           <XAxis 
             dataKey="date" 
             stroke="#94a3b8"
             style={{ fontSize: '12px' }}
+            minTickGap={30}
           />
           <YAxis 
             yAxisId="left" 
@@ -100,7 +126,7 @@ export default function Chart({ data }: ChartProps) {
             stroke="#ef4444"
             strokeWidth={2}
             name="Nhiệt độ (°C)"
-            dot={{ fill: '#ef4444', r: 3 }}
+            dot={false}
             activeDot={{ r: 5 }}
           />
           
@@ -112,7 +138,7 @@ export default function Chart({ data }: ChartProps) {
             stroke="#eab308"
             strokeWidth={2}
             name="Độ sáng (lux)"
-            dot={{ fill: '#eab308', r: 3 }}
+            dot={false}
             activeDot={{ r: 5 }}
           />
           
@@ -120,11 +146,11 @@ export default function Chart({ data }: ChartProps) {
           <Line
             yAxisId="right"
             type="monotone"
-            dataKey="humidity"
+            dataKey="humid"
             stroke="#3b82f6"
             strokeWidth={2}
             name="Độ ẩm không khí (%)"
-            dot={{ fill: '#3b82f6', r: 3 }}
+            dot={false}
             activeDot={{ r: 5 }}
           />
           
@@ -132,11 +158,11 @@ export default function Chart({ data }: ChartProps) {
           <Line
             yAxisId="left"
             type="monotone"
-            dataKey="soilMoisture"
+            dataKey="soil_moisture"
             stroke="#22c55e"
             strokeWidth={2}
             name="Độ ẩm đất (%)"
-            dot={{ fill: '#22c55e', r: 3 }}
+            dot={false}
             activeDot={{ r: 5 }}
           />
           
@@ -144,11 +170,11 @@ export default function Chart({ data }: ChartProps) {
           <Line
             yAxisId="left"
             type="monotone"
-            dataKey="waterLevel"
+            dataKey="water_level"
             stroke="#06b6d4"
             strokeWidth={2}
             name="Mực nước (cm)"
-            dot={{ fill: '#06b6d4', r: 3 }}
+            dot={false}
             activeDot={{ r: 5 }}
           />
         </LineChart>
