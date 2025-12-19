@@ -8,9 +8,6 @@
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
 
-// =======================================================
-//                     PIN CONFIG
-// =======================================================
 #define DHTPIN 4
 #define DHTTYPE DHT11
 
@@ -24,9 +21,6 @@
 #define RELAY_LIGHT 23   // Relay for Light (Active HIGH)
 
 
-// =======================================================
-//                     OBJECTS
-// =======================================================
 DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 bool isLCDOn = false;
@@ -44,6 +38,7 @@ bool isShowMenu = true;
 bool isReuse = false;
 int lastTime = 0;
 int lastButtonState = LOW;
+bool isAgree = false;
 
 String ssid = "";
 String pass = "";
@@ -88,7 +83,7 @@ PubSubClient client(secureClient);
 
 // Reading sensors functions
 int readLight() { return analogRead(LIGHT_PIN); }
-int readSoil()  { return analogRead(SOIL_PIN); }
+int readSoil()  { return map(analogRead(SOIL_PIN), 0, 4095, 0, 100); }
 int readRain()  { return analogRead(RAIN_PIN); }
 
 float readTemp() { return dht.readTemperature(); }
@@ -216,10 +211,8 @@ void runDevices() {
     Serial.print("Current WiFi: ");
     Serial.println(WiFi.SSID());
   } else {
-    Serial.println("Current WiFi: Not connected => Can not connect to MQTT broker.");
-    Serial.println("Please connect to WiFi first.");
-    isRunning = false;
-    isShowMenu = true;
+    Serial.println("Current WiFi: Not connected => Can not connect to MQTT broker, only read sensor and display on LCD.");
+    isAgree = true;
     return;
   }
 }
@@ -230,14 +223,7 @@ void connectMQTT() {
 
     if (client.connect(deviceID, mqttUser, mqttPass)) {
       Serial.println("connected!");
-      client.subscribe((String(deviceID) + "/bind").c_str());
-      StaticJsonDocument<64> doc;
-      doc["device_id"] = deviceID;
-
-      char buf[64];
-      serializeJson(doc, buf);
-      client.publish("device/bind", buf);
-
+      client.subscribe((String(deviceID) + "/#").c_str());
       return;
     } else {
       Serial.printf("fail (%d)\n", client.state());
@@ -254,49 +240,34 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 
   Serial.printf("[MQTT] %s → %s\n", topic, msg.c_str());
 
-  StaticJsonDocument<256> doc;
+  JsonDocument doc;
   DeserializationError error = deserializeJson(doc, msg);
 
-  if (String(topic) == String(deviceID) + "/bind") {
-    if (userID == "")
-    {
-      userID = doc["user_id"] | "";
-      Serial.print("[MQTT] Bound to user ID: ");
-      Serial.println(userID);
-      client.subscribe((String(userID) + "/#").c_str());
-    }
-  }
-
   // --- Remote Pump Control ---
-  if (String(topic) == String(userID) + "/pump") {
+  if (String(topic) == String(deviceID) + "/pump") {
     if (doc["action"] == "ON")  digitalWrite(RELAY_PUMP, HIGH);
     if (doc["action"] == "OFF") digitalWrite(RELAY_PUMP, LOW);
   }
 
     // -------- Light Control --------
-  if (String(topic) == String(userID) + "/light") {
-    Serial.println("[MQTT] Light control command received.");
-    Serial.println("[MQTT] Action: " + String((const char*)doc["action"]));
+  if (String(topic) == String(deviceID) + "/GROW_LIGHT") {
     if (doc["action"] == "ON")  digitalWrite(RELAY_LIGHT, HIGH);
     if (doc["action"] == "OFF") digitalWrite(RELAY_LIGHT, LOW);
   }
 }
 
 void sendSensorsMQTT() {
-  if (userID == "") {
-    Serial.println("[MQTT] User ID not bound yet. Cannot send sensor data.");
-    return;
-  }
-  StaticJsonDocument<256> doc;
+
+  JsonDocument doc;
   doc["light"] = readLight();
-  doc["soil"]  = readSoil();
-  doc["rain"]  = readRain();
-  doc["temp"]  = readTemp();
-  doc["hum"]   = readHum();
+  doc["soil_moisture"]  = readSoil();
+  doc["water_level"]  = readRain();
+  doc["temperature"]  = readTemp();
+  doc["humid"]   = readHum();
 
   char buffer[256];
   serializeJson(doc, buffer, sizeof(buffer));
-  client.publish((String(userID)+"/sensor").c_str(), buffer);
+  client.publish((String(deviceID)+"/sensor").c_str(), buffer);
 
   Serial.println("[MQTT] Sensor data sent!");
 }
@@ -354,14 +325,12 @@ void setup() {
   secureClient.setCACert(root_ca);
   client.setServer(mqttServer, mqttPort);
   client.setCallback(mqttCallback);
-
-  showMenu();
 }
 
 
 void loop() {
   // Detect WiFi lost
-  if (WiFi.status() != WL_CONNECTED && !isShowMenu) {
+  if (WiFi.status() != WL_CONNECTED && !isShowMenu && !isAgree) {
     Serial.println("\nWiFi disconnected!");
     isShowMenu = true;
     isRunning = false;
@@ -390,8 +359,11 @@ void loop() {
   }
 
   if (isRunning) {
-    client.loop();
-    connectMQTT();
+    if (!isAgree)
+    {
+      client.loop();
+      connectMQTT();
+    }
 
     int currentTime = millis();
     int currentButtonState = digitalRead(BUTTON_PIN);
@@ -406,14 +378,10 @@ void loop() {
     }
     lastButtonState = currentButtonState;
 
-    if (isLCDOn) {
-      updateLCD();
-    }
-
     if (currentTime - lastTime >= 5000) {
-      sendSensorsMQTT();
-      updateLCD();
+      if (WiFi.status() == WL_CONNECTED) sendSensorsMQTT();
       lastTime = currentTime;
+      updateLCD();
     }
   }
 }
