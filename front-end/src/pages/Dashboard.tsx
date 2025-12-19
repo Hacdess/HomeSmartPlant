@@ -8,17 +8,6 @@ import type { DeviceData } from "src/types/outDevices.type";
 import type { LogData } from "src/types/logs.type";
 import type { SensorRecord, SensorLimit } from "src/types/sensors.type";
 
-
-// Tính trạng thái Gauge dựa trên giá trị sensor và ngưỡng
-const calculateStatus = (value: number, min: number, max: number): string => {
-  const range = max - min;
-  const threshold1 = min + range * 0.3;
-  const threshold2 = max - range * 0.3;
-  if (value < threshold1) return 'Low';
-  if (value > threshold2) return 'High';
-  return 'Normal';
-};
-
 // format date dạng: HH:MM:SS DD/MM/YYYY
 export const formatDateTime = (inputDate: string): string => {
   const date = new Date(inputDate);
@@ -120,39 +109,6 @@ export default function Dashboard() {
       setError('Failed to fetch logs');
     }
   };
-
-  // fetch chart data
-  // const fetchChartData = async () => {
-  //   try {
-  //     // TODO: Uncomment khi có API thật
-  //     /*
-  //     const response = await fetch('/api/sensors/history?days=7', {
-  //       method: 'GET',
-  //       headers: { 'Content-Type': 'application/json' },
-  //     });
-  //     const data = await response.json();
-  //     if (!response.ok) throw new Error(data.message || 'Server error');
-  //     if (data.isSuccess) {
-  //       // Transform data to chart format
-  //       const chartData = data.data.map((record: SensorData) => ({
-  //         date: new Date(record.timestamp).toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' }),
-  //         temperature: record.temperature,
-  //         light: record.lightIntensity,
-  //         humidity: record.humidity,
-  //         soilMoisture: record.soilMoisture,
-  //         waterLevel: record.waterLevel,
-  //       }));
-  //       setChartData(chartData);
-  //     }
-  //     */
-
-  //     // MOCK DATA
-  //     // setChartData(MOCK_CHART_DATA);
-  //   } catch (e) {
-  //     console.error('Failed to fetch chart data:', e);
-  //   }
-  // };
-   // Load All Data on Mount
 
   const loadDashboard = async () => {
     setLoading(true);
@@ -293,121 +249,6 @@ export default function Dashboard() {
 
       {/* 4 Gauges */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Temperature */}
-        
-        {/* <Gauge
-          title="Temperature"
-          value={sensorRecords[0]?.temperature}
-          unit="°C"
-          status={calculateStatus(
-            sensorRecords[0]?.temperature,
-            sensorLimit?.temp_min ?? 20,
-            sensorLimit?.temp_max ?? 50
-          )}
-          min={sensorLimit?.temp_min ?? 20}
-          max={sensorLimit?.temp_max ?? 50}
-          dangerThreshold1={
-            sensorLimit?.temp_min ?? 20 + (sensorLimit?.temp_max ?? 50 - (sensorLimit?.temp_min ?? 20)) * 0.3
-          }
-          dangerThreshold2={
-            (sensorLimit?.temp_min ?? 20) + (sensorLimit?.temp_max ?? 50 - (sensorLimit?.temp_min ?? 20)) * 0.8
-          }
-          icon="temperature"
-          onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits()
-          }
-        />
-        <Gauge
-          title="Light Intensity"
-          value={sensorRecords[0]?.light}
-          unit="lux"
-          status={calculateStatus(
-            sensorRecords[0]?.light,
-            sensorLimit?.light_min ?? 0,
-            sensorLimit?.light_max ?? 4095
-          )}
-          min={sensorLimit?.light_min ?? 0}
-          max={sensorLimit?.light_max ?? 4095}
-          dangerThreshold1={
-            sensorLimit?.light_min ?? 0 + (sensorLimit?.light_max ?? 4095 - (sensorLimit?.light_min ?? 0)) * 0.25
-          }
-          dangerThreshold2={
-            sensorLimit?.light_min ?? 0 + (sensorLimit?.light_max ?? 4095 - (sensorLimit?.light_min ?? 0)) * 0.75
-          }
-          icon="light"
-          onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits()
-          }
-        />
-
-        <Gauge
-          title="Humidity"
-          value={sensorRecords[0]?.humid}
-          unit="ppm"
-          status={calculateStatus(
-            sensorRecords[0]?.humid,
-            sensorLimit?.humid_min ?? 0,
-            sensorLimit?.humid_max ?? 100
-          )}
-          min={sensorLimit?.humid_min ?? 0}
-          max={sensorLimit?.humid_max ?? 100}
-          dangerThreshold1={
-            sensorLimit?.humid_min ?? 0 + (sensorLimit?.humid_max ?? 100 - (sensorLimit?.humid_min ?? 100)) * 0.3
-          }
-          dangerThreshold2={
-            sensorLimit?.humid_min ?? 0 + (sensorLimit?.humid_max ?? 100 - (sensorLimit?.humid_min ?? 100)) * 0.8
-          }
-          icon="humidity"
-          onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits()
-          }
-        />
-
-        <Gauge
-          title="Mực nước"
-          value={sensorRecords[0]?.water_level}
-          unit="mm"
-          status={calculateStatus(
-            sensorRecords[0]?.water_level,
-            sensorLimit?.water_level_min ?? 0,
-            sensorLimit?.water_level_max ?? 1600
-          )}
-          min={sensorLimit?.water_level_min ?? 0}
-          max={sensorLimit?.water_level_max ?? 1600}
-          dangerThreshold1={
-            sensorLimit?.water_level_min ?? 0 + (sensorLimit?.water_level_max ?? 1600 - (sensorLimit?.water_level_min ?? 0)) * 0.3
-          }
-          dangerThreshold2={
-            sensorLimit?.water_level_min ?? 0 + (sensorLimit?.water_level_max ?? 1600 - (sensorLimit?.water_level_min ?? 0)) * 0.7
-          }
-          icon="soilMoisture"
-          onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits()
-          }
-        />
-
-        <Gauge
-          title="Độ ẩm đất"
-          value={sensorRecords[0]?.soil_moisture}
-          unit="%"
-          status={calculateStatus(
-            sensorRecords[0]?.soil_moisture,
-            sensorLimit?.soil_min ?? 0,
-            sensorLimit?.soil_max ?? 100,
-          )}
-          min={sensorLimit?.soil_min ?? 0}
-          max={sensorLimit?.soil_max ?? 100}
-          dangerThreshold1={
-            sensorLimit?.soil_min ?? 0 + (sensorLimit?.soil_max ?? 100 - (sensorLimit?.soil_min ?? 0)) * 0.3
-          }
-          dangerThreshold2={
-            sensorLimit?.soil_min ?? 0 + (sensorLimit?.soil_max ?? 100 - (sensorLimit?.soil_min ?? 0)) * 0.7
-          }
-          icon="soilMoisture"
-          onThresholdChange={(min, max) =>
-            handleUpdateSensorLimits()
-          }
-        /> */}
 
         <Gauge
           title="Nhiệt độ"
