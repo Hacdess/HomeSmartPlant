@@ -50,25 +50,25 @@ export default function AddDeviceForm () {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-lg mt-10 border border-gray-100">
+    <div className="max-w-md mx-auto bg-background rounded-xl shadow-md overflow-hidden md:max-w-lg mt-10 border border-border-100">
       <div className="p-8">
         <div className="flex items-center gap-2 mb-4">
           {/* Icon SVG đơn giản */}
-          <div className="p-2 bg-green-500 rounded-full text-white">
+          <div className="p-2 bg-green-500 rounded-full text-foreground-100">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-800">Kết nối ESP</h2>
+          <h2 className="text-xl font-bold text-foreground-800">Kết nối ESP</h2>
         </div>
         
-        <p className="text-gray-500 mb-6 text-sm">
+        <p className="text-foreground-500 mb-6 text-sm">
           Nhập mã ESP ID được in trên vỏ thiết bị để bắt đầu điều khiển.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="esp_id" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="esp_id" className="block text-sm font-medium text-foreground-700 mb-1">
               Mã thiết bị (ESP ID)
             </label>
             <input
@@ -77,7 +77,7 @@ export default function AddDeviceForm () {
               value={espId}
               onChange={(e) => setEspId(e.target.value)}
               placeholder="Ví dụ: esp32_1307557"
-              className="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="text-foreground-900 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all"
               disabled={status === 'loading'}
             />
           </div>
@@ -103,7 +103,7 @@ export default function AddDeviceForm () {
             className={`w-full py-2.5 px-4 rounded-lg font-medium text-white transition-colors duration-200 
               ${status === 'loading' 
                 ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-md hover:shadow-lg'}`}
+                : 'bg-green-600 hover:bg-green-700 active:bg-green-800 shadow-md hover:shadow-lg'}`}
           >
             {status === 'loading' ? (
               <span className="flex items-center justify-center gap-2">
