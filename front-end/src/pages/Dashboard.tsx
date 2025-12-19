@@ -68,6 +68,28 @@ export default function Dashboard() {
     }
   };
 
+  const fetchLatestSensorRecord = async () => {
+    try {
+      const response = await fetch('/api/sensors/latest', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Server error');
+      if (data.isSuccess && data.data) 
+        setSensorRecords(prevSensorRecords => {
+        // Kiểm tra kỹ để tránh trùng lặp và lỗi mảng rỗng
+          if (prevSensorRecords.length === 0) return [data.data];
+          if (prevSensorRecords[0].recorded_at !== data.data.recorded_at)
+              return [data.data, ...prevSensorRecords];
+          return prevSensorRecords;
+        });
+    } catch (e) {
+      console.error('Failed to fetch sensor data:', e);
+      setError("Failed to load sensor records");
+    }
+  };
+
   // fetch devices data
   const fetchLogs = async () => {
     try {
@@ -77,7 +99,7 @@ export default function Dashboard() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Server error');
-      if (data.isSuccess) {
+      if (data.isSuccess && data.data) {
         setLogs(data.data);
         console.log(data.data);
       }
@@ -95,13 +117,13 @@ export default function Dashboard() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Server error');
-      if (data.isSuccess) setLogs(prevLogs => {
+      if (data.isSuccess && data.data) 
+        setLogs(prevLogs => {
         // Kiểm tra kỹ để tránh trùng lặp và lỗi mảng rỗng
-        if (prevLogs.length === 0) return [data.data];
-        if (prevLogs[0].created_at !== data.data.created_at) {
-            return [data.data, ...prevLogs];
-        }
-        return prevLogs;
+          if (prevLogs.length === 0) return [data.data];
+          if (prevLogs[0].created_at !== data.data.created_at)
+              return [data.data, ...prevLogs];
+          return prevLogs;
         });
     } catch (e) {
       console.error('Lấy log mới nhất thất bại:', e);
@@ -128,12 +150,10 @@ export default function Dashboard() {
     initDashboard();
 
     const intervalId = setInterval(() => {
-      // Cập nhật chỉ số cảm biến
-      // Cập nhật log mới
+      fetchLatestSensorRecord();
       fetchLatestLog();
-    }, 1000); // 3000ms = 3 giây
+    }, 1000);
 
-    // 3. Cleanup: Xóa interval khi component bị hủy (rời trang)
     return () => clearInterval(intervalId);
   }, []);
 

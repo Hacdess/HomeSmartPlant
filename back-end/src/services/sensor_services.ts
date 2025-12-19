@@ -35,7 +35,7 @@ export const SensorServices = {
   },
 
   getLatestRecordByID: async function (user_id: string) {
-    return supabase.from("sensor_records").select('*').eq("user_id", user_id).order("recorded_at", { ascending: false }).limit(1).single();
+    return supabase.from("sensor_records").select('*').eq("user_id", user_id).order("recorded_at", { ascending: false }).limit(1).maybeSingle();
   },
 
   insertRecord: async function(record: any) {
