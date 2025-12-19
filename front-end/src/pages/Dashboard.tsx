@@ -4,7 +4,6 @@ import Gauge from "../components/Dashboard/Gauge"
 import DeviceController from "../components/Dashboard/DeviceController";
 import Chart from "../components/Dashboard/Chart";
 import LogTable from "../components/Dashboard/LogTable";
-import type { DeviceData } from "src/types/outDevices.type";
 import type { LogData } from "src/types/logs.type";
 import type { SensorRecord, SensorLimit } from "src/types/sensors.type";
 
@@ -27,8 +26,6 @@ export default function Dashboard() {
   const [sensorLimit, setSensorLimit] = useState<SensorLimit | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pump, setPump] = useState<DeviceData | null>(null);
-  const [light, setLight] = useState<DeviceData | null>(null); 
   const [logs, setLogs] = useState<LogData[]>([]);
 
 
@@ -72,26 +69,6 @@ export default function Dashboard() {
   };
 
   // fetch devices data
-  const fetchDevices = async () => {
-    try {
-      const response = await fetch('/api/device/get', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Server error');
-      if (data.isSuccess) {
-        setPump(data.data.rest_pump);
-        setLight(data.data.rest_light);
-        console.log(data.data.rest_pump);
-        console.log(data.data.rest_light);
-      }
-    } catch (e) {
-      console.error('Failed to fetch devices:', e);
-      setError('Failed to fetch devices');
-    }
-  };
-
   const fetchLogs = async () => {
     try {
       const response = await fetch('/api/log/all', {
@@ -110,13 +87,34 @@ export default function Dashboard() {
     }
   };
 
-  const loadDashboard = async () => {
+  const fetchLatestLog = async () => {
+    try {
+      const response = await fetch('/api/log/latest', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Server error');
+      if (data.isSuccess) setLogs(prevLogs => {
+        // Kiểm tra kỹ để tránh trùng lặp và lỗi mảng rỗng
+        if (prevLogs.length === 0) return [data.data];
+        if (prevLogs[0].created_at !== data.data.created_at) {
+            return [data.data, ...prevLogs];
+        }
+        return prevLogs;
+        });
+    } catch (e) {
+      console.error('Lấy log mới nhất thất bại:', e);
+      setError('Lấy log mới nhất thất bại');
+    }
+  };
+  
+  const initDashboard = async () => {
     setLoading(true);
     try {
       await Promise.all([
         fetchSensorLimit(),
         fetchSensorRecords(),
-        fetchDevices(),
         fetchLogs(),
       ]);
     } catch(e: any) {
@@ -125,9 +123,20 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    loadDashboard();
+    initDashboard();
+
+    const intervalId = setInterval(() => {
+      // Cập nhật chỉ số cảm biến
+      // Cập nhật log mới
+      fetchLatestLog();
+    }, 1000); // 3000ms = 3 giây
+
+    // 3. Cleanup: Xóa interval khi component bị hủy (rời trang)
+    return () => clearInterval(intervalId);
   }, []);
+
 
   // 3. user actions handle
   const updateLimitAndSave = async (updatedFields: Partial<SensorLimit>) => {
@@ -162,61 +171,6 @@ export default function Dashboard() {
     }
   };
 
-  // Toggle Device (Auto/Manual)
-  const handleToggleDevice = async () => {
-    try {
-      // const device = devices.find((d) => d.deviceId === deviceId);
-      // if (!device) return;
-
-      // let newStatus = device.status;
-      // let newValue = device.value;
-
-      // if (mode === 'auto') { // mode = 1 là auto
-      //   newStatus = device.value !== 1;
-      //   newValue = newStatus ? 1 : 0;
-      // } else if (mode === 'manual') { // mode = 0 là manual
-      //   newStatus = !device.status;
-      //   newValue = 0;
-      // } else { // Toggle status only
-      //   newStatus = !device.status;
-      // }
-
-      // const payload = {
-      //   deviceId,
-      //   status: newStatus,
-      //   value: newValue,
-      // };
-
-      // // TODO: Uncomment khi có API thật
-      // /*
-      // const response = await fetch(`/api/devices/${deviceId}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(payload),
-      // });
-      // const data = await response.json();
-      // if (!response.ok) throw new Error(data.message || 'Update failed');
-      // if (data.isSuccess) {
-      //   console.log('Device updated successfully');
-      //   await fetchDevices(); // Reload
-      // }
-      // */
-
-      // // MOCK - Optimistic update
-      // setDevices(
-      //   devices.map((d) =>
-      //     d.deviceId === deviceId
-      //       ? { ...d, status: newStatus, value: newValue }
-      //       : d
-      //   )
-      // );
-      // console.log('Toggled device:', deviceId, mode, newStatus, newValue);
-    } catch (e) {
-      console.error('Failed to toggle device:', e);
-      alert('Không thể điều khiển thiết bị');
-    }
-  };
-
   // 4. render
   // Loading state
   if (loading) {
@@ -240,14 +194,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen text-slate-100">
 
-      {/* Title */}
       <div className="max-w-7xl mx-auto p-6">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
       </div>
 
-      {/* 5 Gauges */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
 
         <Gauge
@@ -310,74 +262,10 @@ export default function Dashboard() {
         />
       </div>
 
-      
 
-      {/* Device Controllers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Grow Light Controller */}
-        {light && (
-          <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
-            <div className="flex items-center gap-2 mb-4 text-slate-300">
-              <span className="text-yellow-400 text-2xl">☀️</span>
-              <span className="text-lg font-semibold">GrowLight</span>
-            </div>
-
-            <DeviceController
-              name="Auto Mode"
-              description="Auto turn on/off based on environment light intensity"
-              status={light?.status}
-              onToggle={() => handleToggleDevice()}
-            />
-
-            {/* Manual Mode */}
-            {/* <div className={light.value === 1 ? 'opacity-50 pointer-events-none' : ''}>
-              <DeviceController
-                name="Turn On/Off"
-                description={
-                  growLight.value === 1
-                    ? 'Disabled auto mode first'
-                    : 'Manual control of the light'
-                }
-                enabled={growLight.status && growLight.value === 0}
-                onToggle={() => handleToggleDevice(growLight.deviceId, 'manual')}
-                disabled={growLight.value === 1}
-              />
-            </div> */}
-          </div>
-        )}
-      
-        {/* Water Pump Controller */}
-        {pump && (
-          <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700">
-            <div className="flex items-center gap-2 mb-4 text-slate-300">
-              <span className="text-blue-400 text-2xl">💧</span>
-              <span className="text-lg font-semibold">Watering system</span>
-            </div>
-
-            {/* Auto Mode */}
-            <DeviceController
-              name="Auto Mode"
-              description="Auto turn water pump on/off based in current soil moisture"
-              status={pump?.status}
-              onToggle={() => handleToggleDevice()}
-              />
-
-            {/* Manual Mode */}
-            {/* <div className={waterPump.value === 1 ? 'opacity-50 pointer-events-none' : ''}>
-              <DeviceController
-                name="Turn On/Off"
-                description={
-                  waterPump.value === 1
-                    ? 'Disabled auto mode first'
-                    : 'Manual control of the water pump'
-                }
-                enabled={waterPump.status && waterPump.value === 0}
-                onToggle={() => handleToggleDevice(waterPump.deviceId, 'manual')}
-                disabled={waterPump.value === 1}
-              />
-            </div> */}
-          </div>
-        )}
+        <DeviceController deviceType="PUMP"/>
+        <DeviceController deviceType="GROW_LIGHT"/>
       </div>
 
       {/* Chart */}

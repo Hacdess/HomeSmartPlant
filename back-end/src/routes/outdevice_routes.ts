@@ -6,5 +6,6 @@ const router = Router();
 router.get('/get', authMiddleware, OutDeviceControllers.get);
 router.get('/pump', authMiddleware, OutDeviceControllers.getPump);
 router.get('/light', authMiddleware, OutDeviceControllers.getLight);
+router.put('/', authMiddleware, OutDeviceControllers.updateDevice)
 
 export default router;

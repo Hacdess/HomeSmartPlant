@@ -20,10 +20,12 @@ export default function Header() {
 
       if (data.isSuccess) {
         setUser({
-          full_name: data.data.user_id,
+          full_name: data.data.full_name,
           user_name: data.data.user_name,
           email: data.data.email,
-          notify: true
+          notify: data.data.notify,
+          is_auto: data.data.is_auto,
+          esp_id: data.data.esp_id,
         })
       }
     } catch(e) {

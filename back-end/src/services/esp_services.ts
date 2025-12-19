@@ -5,6 +5,10 @@ export const EspServices = {
     return supabase.from("user_esp").select("*").eq("esp_id", esp_id).maybeSingle();
   },
 
+  findByUserID: async function(user_id: string) {
+    return supabase.from("user_esp").select("*").eq("user_id", user_id).maybeSingle();
+  },
+
   insert: async function(esp_id: string, user_id: string) {
     return supabase.from("user_esp").insert({esp_id: esp_id, user_id: user_id});
   },

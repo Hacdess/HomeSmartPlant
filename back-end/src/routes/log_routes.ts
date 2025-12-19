@@ -6,5 +6,6 @@ const router = Router();
 
 router.get('/all', authMiddleware, LogControllers.getAll);
 router.post('/', authMiddleware, LogControllers.write)
+router.get('/latest', authMiddleware, LogControllers.getLatest);
 
 export default router;

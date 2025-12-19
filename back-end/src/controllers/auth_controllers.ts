@@ -87,7 +87,7 @@ export const AuthControllers = {
       const log: supabaseLog = {
         user_id: payload.user_id,
         type: "AUTHENTICATE",
-        content: "User signed in"
+        content: "Đã đăng nhập tài khoản"
       }
 
       await LogServices.write(log);
@@ -134,7 +134,14 @@ export const AuthControllers = {
 
       if (!user || !user.data) return res.status(404).json(errorResponse("User not found"));
       
-      return res.status(200).json(successResponse(user.data, "User found"));
+      const esp_id = await EspServices.findByUserID(user.data.user_id);
+
+      let return_data: any = {...user.data, notify: true, is_auto: false};
+
+      if (esp_id && esp_id.data)
+        return_data = {... return_data, esp_id: esp_id.data.esp_id}
+
+      return res.status(200).json(successResponse(return_data, "User found"));
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));

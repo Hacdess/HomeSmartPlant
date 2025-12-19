@@ -5,7 +5,9 @@ export type User = {
   full_name: string;
   user_name: string;
   email: string;
-  notify: boolean
+  notify: boolean;
+  is_auto: boolean;
+  esp_id: string;
 };
 
 interface AuthContextType {

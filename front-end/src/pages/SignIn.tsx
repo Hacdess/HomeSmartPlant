@@ -58,6 +58,7 @@ export default function SignIn() {
         setServerError("Server error");
       }
     } finally {
+      setIsLoading(false);
     }
   }
 

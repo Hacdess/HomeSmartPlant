@@ -1,6 +1,8 @@
 import { OutDeviceServices } from "../services/outdevice_services";
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
+import { MqttServices } from "../services/mqtt_services";
+import { LogServices, type supabaseLog } from "../services/log_services";
 
 export const OutDeviceControllers = {
   get: async (req: Request, res: Response) => {
@@ -57,6 +59,41 @@ export const OutDeviceControllers = {
       
       return res.status(200).json(successResponse(rest, "Get light successfully"));
 
+    } catch(e: any) {
+      return res.status(500).json(errorResponse(e.message));
+    }
+  },
+
+  updateDevice: async ( req: Request, res: Response) => {
+    try {
+      const id = res.locals.user.user_id;
+      if (!id) return res.status(404).json(errorResponse("No user stored"));
+
+      const { esp_id, name, status } = req.body;
+
+      if (!esp_id || !name || typeof status !== "boolean")
+        return res.status(400).json(errorResponse("Thiếu thông tin điều khiển thiết bị"));
+
+      if (name !== "PUMP" && name !== "GROW_LIGHT")
+        return res.status(400).json(errorResponse("Tên thiết bị không hỗ trợ"));
+
+      const { data, error } = await OutDeviceServices.update(id, name, status);
+
+      if (error) throw error;
+
+      const action = status ? "ON" : "OFF";
+
+      MqttServices.sendCommand(esp_id, name, action);
+
+      const log: supabaseLog = {
+        user_id: id,
+        type: "DEVICE",
+        content: `${status ? "Bật" : "Tắt"} ${name === "PUMP" ? "máy bơm" : "đèn quang hợp"}`
+      }
+
+      await LogServices.write(log);
+      
+      return res.status(200).json(successResponse(null, `Điều khiển ${name} thành công`));
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
     }

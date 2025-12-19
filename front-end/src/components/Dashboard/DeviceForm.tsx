@@ -35,7 +35,6 @@ export default function AddDeviceForm () {
 
       setStatus('success');
       setMessage(data.message);
-      setEspId(''); // Reset ô nhập liệu
       
       // Tự động tắt thông báo sau 3s
       setTimeout(() => {
