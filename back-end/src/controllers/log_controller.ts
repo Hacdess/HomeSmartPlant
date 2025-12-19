@@ -1,6 +1,7 @@
 import { LogServices } from "../services/log_services";
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
+import type { supabaseLog } from "../services/log_services";
 
 export const LogControllers = {
   getAll: async (req: Request, res: Response) => {
@@ -44,7 +45,13 @@ export const LogControllers = {
       const id = res.locals.user.user_id;
       if (!id) return res.status(404).json(errorResponse("Không có user được lưu"));
 
-      
+      const { type, content } = req.body;
+
+      const { error } = await LogServices.write({user_id: id, type: type, content: content})
+
+      if (error) throw error;
+
+      return res.status(200).json(successResponse(null, "Ghi log thành công"))
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));

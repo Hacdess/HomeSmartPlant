@@ -68,7 +68,7 @@ export default function Header() {
             </Link>
             <h2>{user.user_name}</h2>
             <button
-              className="border p-2"
+              className="border p-2 text-foreground px-4 py-2 rounded hover:bg-green-700"
               onClick={handleLogout}
             >
               Đăng xuất

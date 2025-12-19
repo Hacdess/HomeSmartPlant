@@ -10,8 +10,10 @@ import { useAuth } from "../contexts/AuthContext";
 
 // format date dạng: HH:MM:SS DD/MM/YYYY
 export const formatDateTime = (inputDate: string): string => {
-  const date = new Date(inputDate);
-  return date.toLocaleString('vi-VN', {
+  const normalizedDate = inputDate.endsWith('Z') ? inputDate : inputDate + 'Z';
+
+  const date = new Date(normalizedDate);  return date.toLocaleDateString('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -113,6 +115,23 @@ export default function Dashboard() {
     }
   }
 
+  const writeLog = async(content: string) => {
+    try {
+      const response = await fetch('/api/log/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify( {type: "WARNING", content : content })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Lỗi server');
+      if (data.isSuccess) {
+        console.log('Đã ghi log thành công');
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+
   const fetchLatestSensorRecord = async () => {
     try {
       const response = await fetch('/api/sensors/latest', {
@@ -135,6 +154,7 @@ export default function Dashboard() {
           const alertContent = jsonResponse.data.alerts.join("\n");
           sendMail(alertContent);
           sendTelegram(alertContent);
+          writeLog(alertContent);
           alert(alertContent)
 
           lastAlertRef.current = now;
@@ -180,6 +200,8 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
+
+      console.log(data)
       if (!response.ok) throw new Error(data.message || 'Server error');
       if (data.isSuccess && data.data) 
         setLogs(prevLogs => {
@@ -214,8 +236,12 @@ export default function Dashboard() {
     initDashboard();
 
     const intervalId = setInterval(() => {
-      fetchLatestSensorRecord();
-      fetchLatestLog();
+      const currentUser = userRef.current;
+      if (currentUser && currentUser.esp_id && currentUser.esp_id !== '') {
+        fetchLatestSensorRecord();
+        fetchLatestLog();
+      }
+
     }, 1000);
 
     return () => clearInterval(intervalId);
@@ -312,7 +338,7 @@ export default function Dashboard() {
         <Gauge
           title="Ánh sáng"
           value={sensorRecords?.[0]?.light ?? 0}
-          unit="Lux"
+          unit="%"
           min={sensorLimit?.light_min ?? 0}
           max={sensorLimit?.light_max ?? 100}
           onSave={(newMin, newMax) => 

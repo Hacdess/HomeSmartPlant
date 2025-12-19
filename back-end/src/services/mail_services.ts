@@ -9,7 +9,6 @@ export const MailServices = {
         subject: "SMART PLANT",
         html: `<h3>${content}</h3>`,
       });
-      console.log("Gửi email thành công");
     } catch (error) {
       console.error("Gửi email thất bại:", error);
     }

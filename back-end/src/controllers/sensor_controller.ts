@@ -5,6 +5,7 @@ import { AuthControllers } from "./auth_controllers";
 import { AuthServices } from "../services/auth_services";
 import UserServices from "../services/user_services";
 import { MailServices } from "../services/mail_services";
+import { LogServices } from "../services/log_services";
 
 export const SensorControllers = {
   getLimit: async (req: Request, res: Response) => {

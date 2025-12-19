@@ -17,8 +17,11 @@ export default function Homepage()  {
         <h4 >Giám sát và điều khiển vườn cây của bạn từ xa. Tự động tưới nước, điều chỉnh ánh sáng và theo dõi sức khỏe cây trồng theo thời gian thực.</h4>
         {
           user
-          ? <AddDeviceForm/>
-          : <Link to="/sign-up" className="inline-block text-center bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition-colors w-max">
+          ? <>
+            <Link to={"/dashboard"} className="w-full text-center bg-green-600 text-white py-3 rounded-md font-medium hover:bg-green-700 transition-colors">Dashboard</Link>
+            <AddDeviceForm/>
+          </>
+          : <Link to="/sign-in" className="w-full text-center bg-green-600 text-white py-3 rounded-md font-medium hover:bg-green-700 transition-colors">
             Thử ngay
           </Link>
         }
