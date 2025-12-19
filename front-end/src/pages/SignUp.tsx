@@ -33,6 +33,7 @@ export default function SignUp() {
       // Gọi API Backend
       const payload = {
         email: formData.email,
+        telegram_id: formData.telegram_id,
         phone: formData.phone,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
@@ -108,18 +109,19 @@ export default function SignUp() {
         {/* Form */}
         <form className="mt-8 space-y-2" onSubmit={handleSubmit(onSubmit)}>
           
-          <InputField id="full_name" label="Fullname" type="text" placeholder="Nguyễn Văn A" register={register} errors={errors}/>
-          <InputField id="user_name" label="Username" type="text" placeholder="nguyenvana" register={register} errors={errors}/>
-          <InputField id="phone" label="Phone" type="tel" placeholder="+84 XX XXX XXXX" register={register} errors={errors}/>
-          <InputField id="email" label="Email" type="email" placeholder="nguyenvana@gmail" register={register} errors={errors}/>
-          <InputField id="password" label="Password" type="password" placeholder="******" register={register} errors={errors}/>
-          <InputField id="confirmPassword" label="Confirm password" type="password" placeholder="******" register={register} errors={errors}/>          
+          <InputField id="full_name" label="Họ và tên" type="text" placeholder="Nguyễn Văn A" register={register} errors={errors}/>
+          <InputField id="user_name" label="Tên tài khoản" type="text" placeholder="nguyenvana" register={register} errors={errors}/>
+          <InputField id="phone" label="Số điện thoại" type="tel" placeholder="+84XXXXXXXXX" register={register} errors={errors}/>
+          <InputField id="email" label="Email" type="email" placeholder="nguyenvana@gmail.com" register={register} errors={errors}/>
+          <InputField id="telegram_id" label="Telegram ID" type="text" placeholder="012302390" register={register} errors={errors}/>
+          <InputField id="password" label="Mật khẩu" type="password" placeholder="******" register={register} errors={errors}/>
+          <InputField id="confirmPassword" label="Nhập lại mật khẩu" type="password" placeholder="******" register={register} errors={errors}/>          
           
           {/* Button Submit */}
           <Link to={"/"}>
             <button
               type="button"
-              className="mt-4 inline-flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 ease-in-out"
+              className="w-full mt-4 inline-flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 ease-in-out"
             >
               Quay lại
             </button>

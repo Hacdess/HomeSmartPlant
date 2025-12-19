@@ -4,6 +4,7 @@ export type supabaseUser = {
   full_name: string,
   user_name: string,
   email: string,
+  telegram_id: string,
   phone: string,
   password: string
 } 

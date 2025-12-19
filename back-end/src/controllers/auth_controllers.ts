@@ -6,13 +6,13 @@ import z, { ZodError } from "zod";
 import UserServices from "../services/user_services";
 import { error } from "console";
 import { LogServices, type supabaseLog } from "../services/log_services";
-import { MailServices } from "../services/email_services";
+import { MailServices } from "../services/mail_services";
 import { EspServices } from "../services/esp_services";
 
 export const AuthControllers = {
   signUp: async (req: Request, res: Response) => {
     try {
-      const { email, phone, password, full_name, user_name } = SignUpSchema.parse(req.body);
+      const { telegram_id, email, phone, password, full_name, user_name } = SignUpSchema.parse(req.body);
 
       const existingUser = await UserServices.findByIdentity(email, user_name, phone);
 
@@ -31,6 +31,7 @@ export const AuthControllers = {
         full_name: full_name,
         user_name: user_name,
         email: email,
+        telegram_id: telegram_id,
         phone: phone,
         password: encryptedPassword
       }
@@ -39,7 +40,7 @@ export const AuthControllers = {
 
       if (result.error) throw error
 
-      await MailServices.sendAlert(email, "Bạn mới đăng ký SmartPlant");
+      await MailServices.send(email, "Bạn mới đăng ký SmartPlant");
 
       return res.status(201).json(successResponse(result.data, "Đăng ký thành công"));
     
@@ -70,7 +71,7 @@ export const AuthControllers = {
       }
       const token = await AuthServices.generateToken(payload)
 
-      await MailServices.sendAlert(email, "Bạn mới đăng nhập SmartPlant");
+      await MailServices.send(email, "Bạn mới đăng nhập SmartPlant");
 
       const cookieOptions = {
         httpOnly: true, // Quan trọng: JS không đọc được (chống XSS)

@@ -5,6 +5,8 @@ import espRoutes from './routes/esp_routes';
 import sensorRoutes from './routes/sensor_routes';
 import outdeviceRoutes from './routes/outdevice_routes';
 import logRoutes from './routes/log_routes';
+import mailRoutes from './routes/mail_routes';
+import telegramRoutes from './routes/telegram_routes';
 import cookieParser from 'cookie-parser';
 import { config } from './config/config';
 import { MqttController } from './controllers/mqtt_controllers';
@@ -26,6 +28,8 @@ app.use('/api/esp', espRoutes);
 app.use('/api/sensors', sensorRoutes);
 app.use('/api/device', outdeviceRoutes);
 app.use('/api/log', logRoutes);
+app.use('/api/mail', mailRoutes);
+app.use('/api/telegram', telegramRoutes);
 
 app.listen(config.PORT, () => {
   console.log(`Server đang chạy trên cổng ${config.PORT}`);

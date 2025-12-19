@@ -9,6 +9,9 @@ export const SignUpSchema = z
       .min(2, "Username phải có ít nhất 2 ký tự")
       .regex(/^[a-zA-Z0-9_]+$/, "Username chỉ được chứa chữ, số và dấu gạch dưới"),
     email: z.string().email("Email không hợp lệ"),
+    telegram_id: z
+      .string().trim()
+      .regex(/^-?\d+$/, "Telegram ID phải là số (có thể bao gồm dấu âm)"),
     phone: z
       .string()
       .min(10, "Số điện thoại phải có ít nhất 10 số")

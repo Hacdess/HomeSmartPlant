@@ -12,7 +12,7 @@ export const LogControllers = {
 
       if (error) throw error;
 
-      return res.status(200).json(successResponse(data.map(({user_id, log_id, ...rest}) => rest), "Get all logs successfully"))
+      return res.status(200).json(successResponse(data.map(({user_id, log_id, ...rest}) => rest), "Lấy hết log thành công"))
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));

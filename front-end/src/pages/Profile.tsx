@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom"; 
 import { User, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -7,6 +7,7 @@ type UserProfile = { // back-end/src/types/database.typs.ts
   full_name: string;
   user_name: string;
   email: string;
+  telegram_id: string;
   phone: string;
   created_at: string | null;
   updated_at: string | null;
@@ -126,13 +127,39 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Họ tên
+            </label>
+            <div className="bg-input text-foreground px-4 py-3 border border-border rounded-lg">
+              {user.full_name}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Tên đăng nhập
+            </label>
+            <div className="bg-input text-foreground px-4 py-3 border border-border rounded-lg">
+              {user.user_name}
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Email
             </label>
             <div className="bg-input text-foreground px-4 py-3 border border-border rounded-lg">
               {user.email}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Telegram ID
+            </label>
+            <div className="bg-input text-foreground px-4 py-3 border border-border rounded-lg">
+              {user.telegram_id}
             </div>
           </div>
         </div>

@@ -12,7 +12,7 @@ interface DeviceSwitchProps {
 
 const DeviceSwitch = ({ checked, onChange, disabled = false }: DeviceSwitchProps) => {
   const { user } = useAuth();
-  // console.log(user)
+  console.log(user)
 
   return (
     <button

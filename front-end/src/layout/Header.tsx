@@ -15,9 +15,9 @@ export default function Header() {
       })
 
       const data = await response.json();
-
       if (!response.ok) throw new Error(data.message || "Server error")
-
+      
+      console.log(data)
       if (data.isSuccess) {
         setUser({
           full_name: data.data.full_name,

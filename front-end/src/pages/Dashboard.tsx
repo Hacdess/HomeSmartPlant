@@ -1,11 +1,12 @@
 // DASHBOARD: PAGE CHINH, HIEN THI THONG CAC SENSOR
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Gauge from "../components/Dashboard/Gauge"
 import DeviceController from "../components/Dashboard/DeviceController";
 import Chart from "../components/Dashboard/Chart";
 import LogTable from "../components/Dashboard/LogTable";
 import type { LogData } from "src/types/logs.type";
 import type { SensorRecord, SensorLimit } from "src/types/sensors.type";
+import { useAuth } from "../contexts/AuthContext";
 
 // format date dạng: HH:MM:SS DD/MM/YYYY
 export const formatDateTime = (inputDate: string): string => {
@@ -28,6 +29,16 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [logs, setLogs] = useState<LogData[]>([]);
 
+  const { user } = useAuth()
+  const userRef = useRef(user);
+  const lastAlertRef = useRef(0); // Dùng Ref thay cho state lastAlert để tránh render lại không cần thiết
+  
+  const ALERT_COOLDOWN = 60 * 1000; // 1 phút (Sửa lại 10000 thành 1000 cho đúng logic giây)
+
+  // 3. Luôn cập nhật userRef mỗi khi user thay đổi
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   // 2. API 
   // fectch sensor data
@@ -68,22 +79,75 @@ export default function Dashboard() {
     }
   };
 
+  const sendMail = async(content: string) => {
+    try {
+      const response = await fetch('/api/mail/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify( {content : content })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Lỗi server');
+      if (data.isSuccess) {
+        console.log('Đã gửi mail thành công');
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+
+  const sendTelegram = async(content: string) => {
+    try {
+      const response = await fetch('/api/telegram/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify( {content : content })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Lỗi server');
+      if (data.isSuccess) {
+        console.log('Đã gửi telegram thành công');
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+
   const fetchLatestSensorRecord = async () => {
     try {
       const response = await fetch('/api/sensors/latest', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Server error');
-      if (data.isSuccess && data.data) 
+      const jsonResponse = await response.json();
+      if (!response.ok) throw new Error(jsonResponse.message || 'Server error');
+
+      if (jsonResponse.isSuccess && jsonResponse.data) { 
+
+        const currentUser = userRef.current;
+        const now = Date.now();
+        if (
+          currentUser?.notify && // Check notify từ Ref
+          jsonResponse.data.alerts &&
+          jsonResponse.data.alerts.length > 0 && 
+          now - lastAlertRef.current > ALERT_COOLDOWN
+        ) {
+          const alertContent = jsonResponse.data.alerts.join("\n");
+          sendMail(alertContent);
+          sendTelegram(alertContent);
+          alert(alertContent)
+
+          lastAlertRef.current = now;
+        }
+
         setSensorRecords(prevSensorRecords => {
         // Kiểm tra kỹ để tránh trùng lặp và lỗi mảng rỗng
-          if (prevSensorRecords.length === 0) return [data.data];
-          if (prevSensorRecords[0].recorded_at !== data.data.recorded_at)
-              return [data.data, ...prevSensorRecords];
+          if (prevSensorRecords.length === 0) return [jsonResponse.data.data];
+          if (prevSensorRecords[0].recorded_at !== jsonResponse.data.data.recorded_at)
+              return [jsonResponse.data.data, ...prevSensorRecords];
           return prevSensorRecords;
         });
+      }
     } catch (e) {
       console.error('Không thể fetch sensor data mới nhất:', e);
       setError("Không thể tải sensor record mới nhất");

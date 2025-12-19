@@ -18,6 +18,8 @@ class Config {
     public readonly SMTP_USER: string;
     public readonly SMTP_PASS: string;
     public readonly FROM_EMAIL: string;
+
+    public readonly TELEGRAM_TOKEN: string;
  
     constructor() {
         this.PORT = Number(process.env.PORT);
@@ -35,6 +37,8 @@ class Config {
         this.SMTP_USER = String(process.env.SMTP_USER);
         this.SMTP_PASS = String(process.env.SMTP_PASS);
         this.FROM_EMAIL = String(process.env.FROM_EMAIL);
+
+        this.TELEGRAM_TOKEN = String(process.env.TELEGRAM_TOKEN)
     }
 }
 

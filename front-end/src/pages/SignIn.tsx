@@ -95,14 +95,14 @@ export default function SignIn() {
         {/* Form */}
         <form className="mt-8 space-y-2" onSubmit={handleSubmit(onSubmit)}>
           
-          <InputField id="email" label="Email" type="email" placeholder="nguyenvana@gmail" register={register} errors={errors}/>
-          <InputField id="password" label="Password" type="password" placeholder="******" register={register} errors={errors}/>
+          <InputField id="email" label="Email" type="email" placeholder="nguyenvana@gmail.com" register={register} errors={errors}/>
+          <InputField id="password" label="Mật khẩu" type="password" placeholder="******" register={register} errors={errors}/>
           
           {/* Button Submit */}
           <Link to={"/"}>
             <button
               type="button"
-              className="mt-4 inline-flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 ease-in-out"
+              className="w-full mt-4 inline-flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-gray-500 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200 ease-in-out"
             >
               Quay lại
             </button>

@@ -1,6 +1,10 @@
 import { SensorLimit, SensorServices } from "../services/sensor_services";
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
+import { AuthControllers } from "./auth_controllers";
+import { AuthServices } from "../services/auth_services";
+import UserServices from "../services/user_services";
+import { MailServices } from "../services/mail_services";
 
 export const SensorControllers = {
   getLimit: async (req: Request, res: Response) => {
@@ -80,25 +84,31 @@ export const SensorControllers = {
       
       const {user_id, rec_id, ...record} = data;
 
-      const alerts = [];
+      const alerts: string[] = [];
 
       const { data: limit,  error: error1} = await SensorServices.getLimitByID(user_id);
       
       if (!error1 && limit) {
         if (record.humid < limit.humid_min || record.humid > limit.humid_max)
-          alerts.push(`Độ ấm không khí vượt ngưỡng (${record.humid})`)
+          alerts.push(`Độ ẩm không khí vượt ngưỡng (${record.humid})`)
         if (record.temperature < limit.temp_min || record.temperature > limit.temp_max)
           alerts.push(`Nhiệt độ không khí vượt ngưỡng (${record.temperature})`)
         if (record.soil_moisture < limit.soil_min || record.soil_moisture > limit.soil_max)
-          alerts.push(`Độ ấm đất vượt ngưỡng (${record.soil_moisture})`)
+          alerts.push(`Độ ẩm đất vượt ngưỡng (${record.soil_moisture})`)
         if (record.light < limit.light_min || record.light > limit.light_max)
           alerts.push(`Ánh sáng vượt ngưỡng (${record.light})`)
         if (record.water_level < limit.water_level_min|| record.water_level > limit.water_level_max)
           alerts.push(`Mực nước vượt ngưỡng (${record.water_level})`)
+
+        const user = await UserServices.findByID(id);
+        if (user && user.data && user.data.notify && alerts.length > 0) {
+          // await MailServices.sendAlert(user.data.email, alerts.join("\n"));
+          return res.status(200).json(successResponse({data: record, alerts: alerts}, "Lấy record mới nhất thành công"));
+        }
       }
 
 
-      return res.status(200).json(successResponse(record, "Lấy record mới nhất thành công"));
+      return res.status(200).json(successResponse({data: record}, "Lấy record mới nhất thành công"));
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
     }
