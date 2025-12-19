@@ -5,22 +5,14 @@ import { useEffect } from "react";
 // import { create } from "node_modules/axios/index.d.cts";
 
 const Profile = () => {
-  // const { user, setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
-
-  let user = {
-    userId: "12345",
-    fullname: "John Doe",
-    username: "johndoe",
-    email: "hahaha@gmail.com",
-    createdAt: "2023-01-01"
-  }
 
   useEffect(() => {
     document.title = "Profile - SmartPlant";
   }, []);
 
-  if (!user) return <Navigate to="/sign-in" />;
+  if (!user) return <Navigate to="/" />;
 
   const handleLogout = async () => {
     try {
@@ -31,8 +23,8 @@ const Profile = () => {
 
       const result = await res.json();
       if (res.ok && result.isSuccess) {
-        // setUser(null);
         navigate('/');
+        setUser(null);
       }
     } catch (e) {
       console.error(e);
@@ -63,7 +55,7 @@ const Profile = () => {
               Fullname
             </label>
             <div className="bg-input text-foreground px-4 py-3 border border-border rounded-lg">
-              {user.username || user.fullname}
+              {user.user_name || user.full_name}
             </div>
           </div>
 
