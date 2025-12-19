@@ -18,11 +18,11 @@ export const AuthControllers = {
 
       if (existingUser) {
         if (existingUser.data?.email === email)
-          return res.status(409).json(errorResponse("Email existed"));
+          return res.status(409).json(errorResponse("Email đã tồn tại"));
         if (existingUser.data?.user_name === user_name)
-          return res.status(409).json(errorResponse("Username existed"));
+          return res.status(409).json(errorResponse("Tên người dùng đã tồn tại"));
         if (existingUser.data?.phone)
-          return res.status(409).json(errorResponse("Phone existed"));
+          return res.status(409).json(errorResponse("Số điện thoại đã tồn tại"));
       }
 
       const encryptedPassword = await AuthServices.hashPassword(password);
@@ -41,7 +41,7 @@ export const AuthControllers = {
 
       await MailServices.sendAlert(email, "Bạn mới đăng ký SmartPlant");
 
-      return res.status(201).json(successResponse(result.data, "Signed up successfully"));
+      return res.status(201).json(successResponse(result.data, "Đăng ký thành công"));
     
     } catch(e: any) {
       if (e instanceof z.ZodError) {
@@ -58,12 +58,11 @@ export const AuthControllers = {
 
       const existingUser = await UserServices.findByEmail(email);
       
-      if (!existingUser || !existingUser.data) return res.status(404).json(errorResponse("Email not found"));
+      if (!existingUser || !existingUser.data) return res.status(404).json(errorResponse("Email không tồn tại"));
 
       const isValidated = await AuthServices.validatePassword(password, existingUser.data.password);
       
-      if (!isValidated) return res.status(401).json(errorResponse("Invalid password"));
-
+      if (!isValidated) return res.status(401).json(errorResponse("Mật khẩu không hợp lệ"));
       const payload = {
         user_id: existingUser.data.user_id,
         user_name: existingUser.data.user_name,
@@ -92,7 +91,7 @@ export const AuthControllers = {
 
       await LogServices.write(log);
 
-      return res.status(200).json(successResponse(payload, "Signed in successfully"));
+      return res.status(200).json(successResponse(payload, "Đăng nhập thành công"));
 
     } catch(e: any) {
       if (e instanceof ZodError) {
@@ -106,7 +105,7 @@ export const AuthControllers = {
   signOut: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("Không có người dùng nào được lưu"));
       
       await EspServices.deleteByID(id);
       
@@ -119,7 +118,7 @@ export const AuthControllers = {
           path: '/',
         });
       }
-      res.status(200).json(successResponse(null, 'Logged out, all cookies cleared'));
+      res.status(200).json(successResponse(null, 'Đăng xuất thành công, tất cả cookie đã được xóa'));
     } catch (e) {
       return res.status(500).json(errorResponse(String(e)));
     }
@@ -128,11 +127,11 @@ export const AuthControllers = {
   getUser: async(req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("Không có người dùng nào được lưu"));
 
       const user = await UserServices.findByID(id);
 
-      if (!user || !user.data) return res.status(404).json(errorResponse("User not found"));
+      if (!user || !user.data) return res.status(404).json(errorResponse("Không tìm thấy người dùng"));
       
       const esp_id = await EspServices.findByUserID(user.data.user_id);
 
@@ -141,7 +140,7 @@ export const AuthControllers = {
       if (esp_id && esp_id.data)
         return_data = {... return_data, esp_id: esp_id.data.esp_id}
 
-      return res.status(200).json(successResponse(return_data, "User found"));
+      return res.status(200).json(successResponse(return_data, "Đã tìm thấy người dùng"));
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));

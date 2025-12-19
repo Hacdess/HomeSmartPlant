@@ -8,7 +8,7 @@ export default function Footer() {
           © {currentYear} SmartPlant. All rights reserved.
         </p>
         <p className="text-xs text-muted-foreground">
-          Developed by Group 7 - 23clc09
+          Phát triển bởi Nhóm 7 - 23clc09
         </p>
       </div>
     </footer>

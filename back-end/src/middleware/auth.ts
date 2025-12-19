@@ -9,20 +9,20 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const token = req.cookies.token; 
 
     if (!token) {
-      return res.status(401).json(errorResponse("No token found"));
+      return res.status(401).json(errorResponse("Không có token"));
     }
 
     try {
     
       const payload:MyTokenPayload = await AuthServices.validateToken(token) as MyTokenPayload;
 
-      if (!payload) throw new Error("Token: Invalid payload");
+      if (!payload) throw new Error("Token: Payload không hợp lệ");
 
       res.locals.user = payload;
       res.locals.authenticated = true; // Lưu thông tin user để dùng ở bước sau
 
       next();
     } catch (err) {
-      return res.status(403).json(errorResponse("Invalid token"));
+      return res.status(403).json(errorResponse("Token không hợp lệ"));
     }
 };

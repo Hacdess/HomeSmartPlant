@@ -72,7 +72,7 @@ export default function Chart({ data }: {data : SensorRecord[]}) {
   if(data.length === 0) {
     return (
       <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 flex items-center justify-center h-80">
-        <h3 className="text-slate-100 mb-4 text-xl font-semibold">No data available to display the chart.</h3>
+        <h3 className="text-slate-100 mb-4 text-xl font-semibold">Không có dữ liệu để hiển thị chart.</h3>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function Chart({ data }: {data : SensorRecord[]}) {
     // Container
     <div className="bg-slate-800/50 rounded-lg p-6 border border-slate-700 flex items-center justify-center h-80">
       {/* Title */}
-      <h3 className="text-slate-100 mb-4 text-xl font-semibold">Week Chart</h3>
+      <h3 className="text-slate-100 mb-4 text-xl font-semibold">Biểu đồ tuần</h3>
       
       {/* Recharts LineChart */}
       <ResponsiveContainer width="100%" height={300}>

@@ -12,7 +12,7 @@ interface DeviceSwitchProps {
 
 const DeviceSwitch = ({ checked, onChange, disabled = false }: DeviceSwitchProps) => {
   const { user } = useAuth();
-  console.log(user)
+  // console.log(user)
 
   return (
     <button
@@ -116,7 +116,7 @@ export default function DeviceController({ deviceType }: DeviceControllerProps) 
         setIsOn(data.data.status); 
       }
     } catch (e) {
-      console.error(`Failed to fetch ${deviceType}:`, e);
+      console.error(`Không thể fetch ${deviceType}:`, e);
     }
   };
 
@@ -154,7 +154,7 @@ export default function DeviceController({ deviceType }: DeviceControllerProps) 
         setIsOn(newStatus)
       } else {
         // Nếu lỗi thì không làm gì (hoặc hiện thông báo)
-        console.error(data.message);
+        console.error('Lỗi:', data.message);
       }
     } catch (error) {
       console.error("Lỗi kết nối:", error);

@@ -25,7 +25,7 @@ export default function LogTable({ logs }: {logs: LogData[]}) {
       <div className="flex items-center gap-2 mb-4">
         <AlertCircle className="w-5 h-5 text-yellow-400" />
         <h3 className="text-slate-100 text-xl font-semibold">
-          ESP Log - Warning & Notifications
+          Nhật ký ESP - Cảnh báo & Thông báo
         </h3>
       </div>
         {/* Log Table */}
@@ -34,10 +34,10 @@ export default function LogTable({ logs }: {logs: LogData[]}) {
             {/* Table Head */}
           <thead>
             <tr className="border-b border-slate-700">
-              <th className="text-left py-3 px-4 text-slate-300 font-medium">No.</th>
-              <th className="text-left py-3 px-4 text-slate-300 font-medium">Date Time</th>
-              <th className="text-left py-3 px-4 text-slate-300 font-medium">Type</th>
-              <th className="text-left py-3 px-4 text-slate-300 font-medium">Content</th>
+              <th className="text-left py-3 px-4 text-slate-300 font-medium">STT</th>
+              <th className="text-left py-3 px-4 text-slate-300 font-medium">Thời gian</th>
+              <th className="text-left py-3 px-4 text-slate-300 font-medium">Loại</th>
+              <th className="text-left py-3 px-4 text-slate-300 font-medium">Nội dung</th>
             </tr>
           </thead>
           {/* Table Body */}
@@ -45,7 +45,7 @@ export default function LogTable({ logs }: {logs: LogData[]}) {
             {logs.length === 0 ? (
               <tr>
                 <td colSpan={4} className="py-8 text-center text-slate-400">
-                  No logs available
+                  Chưa có nhật ký
                 </td>
               </tr>
             ) : (

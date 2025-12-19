@@ -9,9 +9,9 @@ export const MailServices = {
         subject: "SMART PLANT",
         html: `<h3>${content}</h3>`,
       });
-      console.log("✅ Email sent successfully");
+      console.log("✅ Email đã gửi thành công");
     } catch (error) {
-      console.error("❌ Email sending failed:", error);
+      console.error("❌ Gửi email thất bại:", error);
     }
   }
 };
