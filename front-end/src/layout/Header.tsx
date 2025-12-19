@@ -29,7 +29,7 @@ export default function Header() {
         })
       }
     } catch(e) {
-      console.error(e);
+      console.error('Lỗi khi tải thông tin người dùng:', e);
     }
   }
 
@@ -50,7 +50,7 @@ export default function Header() {
         navigate('/');
       }
     } catch (e) {
-      console.error(e);
+      console.error('Lỗi khi đăng xuất:', e);
     }
   };
 
@@ -71,15 +71,15 @@ export default function Header() {
               className="border p-2"
               onClick={handleLogout}
             >
-              Sign out
+              Đăng xuất
             </button>
           </>
           : <>
             <Link to="sign-in" className="text-muted-foreground hover:text-green-600">
-                Sign In
+                Đăng nhập
             </Link>
             <Link to="/sign-up" className="text-foreground bg-green-600 px-4 py-2 rounded hover:bg-green-700">
-                Sign Up
+                Đăng ký
             </Link>
           </>
         }

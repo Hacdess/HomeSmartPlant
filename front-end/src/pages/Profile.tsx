@@ -60,7 +60,7 @@ const Profile = () => {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 flex justify-center items-center min-h-[400px]">
-        <div className="text-muted-foreground">Loading...</div>
+        <div className="text-muted-foreground">Đang tải...</div>
       </div>
     );
   }
@@ -74,7 +74,7 @@ const Profile = () => {
             onClick={() => navigate('/sign-in')}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-lg font-medium transition-colors duration-200"
           >
-            Go to Sign In
+            Đi tới Đăng nhập
           </button>
         </div>
       </div>
@@ -94,7 +94,7 @@ const Profile = () => {
         setUser(null);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Lỗi khi đăng xuất:', e);
     }
   };
 
@@ -102,24 +102,24 @@ const Profile = () => {
     <div className="max-w-4xl mx-auto py-8 px-4">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Account</h1>
+        <h1 className="text-3xl font-bold text-foreground">Tài khoản</h1>
       </div>
 
       {/* Personal Information Section */}
       <div className="bg-background border border-border rounded-lg p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <User className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Personal Information</h2>
+          <h2 className="text-xl font-semibold text-foreground">Thông tin cá nhân</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-6">
-          Your account details and personal information here
+          Thông tin chi tiết tài khoản và cá nhân của bạn
         </p>
 
         <div className="space-y-4">
           {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Fullname
+              Họ và tên
             </label>
             <div className="bg-input text-foreground px-4 py-3 border border-border rounded-lg">
               {user.user_name || user.full_name}
@@ -142,17 +142,17 @@ const Profile = () => {
       <div className="bg-background border border-border rounded-lg p-6">
         <div className="flex items-center gap-2 mb-4">
           <LogOut className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Sign Out</h2>
+          <h2 className="text-xl font-semibold text-foreground">Đăng xuất</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-6">
-          Sign out from your account to ensure security
+          Đăng xuất khỏi tài khoản để đảm bảo an toàn
         </p>
 
         <button
           onClick={handleLogout}
           className="bg-green-600 hover:bg-green-700 text-primary-foreground px-6 py-2.5 rounded-lg font-medium transition-colors duration-200"
         >
-          Sign Out
+          Đăng xuất
         </button>
       </div>
     </div>

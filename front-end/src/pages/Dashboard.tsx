@@ -42,11 +42,11 @@ export default function Dashboard() {
 
       if (data.isSuccess) {
         setSensorLimit(data.data);
-        console.log(data.data);
+        console.log('Đã tải giới hạn cảm biến:', data.data);
       }
     } catch (e) {
-      console.error('Failed to fetch sensor data:', e);
-      setError("Failed to load sensor limit");
+      console.error('Không thể tải dữ liệu cảm biến:', e);
+      setError("Không thể tải giới hạn cảm biến");
     }
   };
 
@@ -60,11 +60,11 @@ export default function Dashboard() {
       if (!response.ok) throw new Error(data.message || 'Server error');
       if (data.isSuccess) {
         setSensorRecords(data.data);
-        console.log(data.data);
+        console.log('Đã tải dữ liệu cảm biến:', data.data);
       }
     } catch (e) {
-      console.error('Failed to fetch sensor data:', e);
-      setError("Failed to load sensor records");
+      console.error('Không thể tải dữ liệu cảm biến:', e);
+      setError("Không thể load sensor records");
     }
   };
 
@@ -85,8 +85,8 @@ export default function Dashboard() {
           return prevSensorRecords;
         });
     } catch (e) {
-      console.error('Failed to fetch sensor data:', e);
-      setError("Failed to load sensor records");
+      console.error('Không thể fetch sensor data mới nhất:', e);
+      setError("Không thể tải sensor record mới nhất");
     }
   };
 
@@ -101,11 +101,11 @@ export default function Dashboard() {
       if (!response.ok) throw new Error(data.message || 'Server error');
       if (data.isSuccess && data.data) {
         setLogs(data.data);
-        console.log(data.data);
+        console.log('Đã tải log:', data.data);
       }
     } catch (e) {
-      console.error('Failed to fetch logs:', e);
-      setError('Failed to fetch logs');
+      console.error('Không thể tải log:', e);
+      setError('Không thể tải log');
     }
   };
 
@@ -180,11 +180,11 @@ export default function Dashboard() {
       if (!response.ok || !data.isSuccess) {
         throw new Error(data.message || 'Update failed');
       }
-      alert("Update success")
-      console.log('Update success');
+      alert("Cập nhật thành công")
+      console.log('Cập nhật thành công');
       // toast.success("Đã cập nhật ngưỡng!"); 
     } catch (e) {
-      console.error('Failed to update sensor limits:', e);
+      console.error('Không thể cập nhật giới hạn cảm biến:', e);
       // Nếu lỗi, revert lại state cũ (nếu muốn kỹ tính hơn)
       alert('Lỗi khi lưu cấu hình!');
       fetchSensorLimit(); // Load lại data gốc
@@ -197,7 +197,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="flex items-center justify-center h-96">
-          <div className="text-slate-400 text-lg">Loading...</div>
+          <div className="text-slate-400 text-lg">Đang tải...</div>
         </div>
       </div>
     );

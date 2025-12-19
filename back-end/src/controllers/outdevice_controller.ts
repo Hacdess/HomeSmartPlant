@@ -8,7 +8,7 @@ export const OutDeviceControllers = {
   get: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("không có người dùng nào được lưu"));
 
       const { data: pump, error: pump_error } = await OutDeviceServices.get(id, "PUMP");
 
@@ -21,7 +21,7 @@ export const OutDeviceControllers = {
       const { user_id: pump_user, ...rest_pump} = pump;
       const { user_id: light_user, ...rest_light} = light;
       
-      return res.status(200).json(successResponse({rest_pump, rest_light}, "Get output devices successfully"));
+      return res.status(200).json(successResponse({rest_pump, rest_light}, "Lấy thiết bị đầu ra thành công"));
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
@@ -31,7 +31,7 @@ export const OutDeviceControllers = {
   getPump: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("không có người dùng nào được lưu"));
 
       const { data, error } = await OutDeviceServices.get(id, "PUMP");
 
@@ -39,7 +39,7 @@ export const OutDeviceControllers = {
 
       const { user_id, ...rest} = data;
       
-      return res.status(200).json(successResponse(rest, "Get pump successfully"));
+      return res.status(200).json(successResponse(rest, "Lấy máy bơm thành công"));
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
@@ -49,7 +49,7 @@ export const OutDeviceControllers = {
   getLight: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("không có người dùng nào được lưu"));
 
       const { data, error } = await OutDeviceServices.get(id, "GROW_LIGHT");
 
@@ -57,7 +57,7 @@ export const OutDeviceControllers = {
 
       const { user_id, ...rest} = data;
       
-      return res.status(200).json(successResponse(rest, "Get light successfully"));
+      return res.status(200).json(successResponse(rest, "Lấy đèn quang hợp thành công"));
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
@@ -67,7 +67,7 @@ export const OutDeviceControllers = {
   updateDevice: async ( req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("không có người dùng nào được lưu"));
 
       const { esp_id, name, status } = req.body;
 

@@ -28,5 +28,5 @@ app.use('/api/device', outdeviceRoutes);
 app.use('/api/log', logRoutes);
 
 app.listen(config.PORT, () => {
-  console.log(`Server is running on port ${config.PORT}`);
+  console.log(`Server đang chạy trên cổng ${config.PORT}`);
 });

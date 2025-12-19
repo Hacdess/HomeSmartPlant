@@ -9,11 +9,11 @@ export const MqttController = {
   // Hàm khởi chạy (gọi 1 lần ở index.ts)
   init() {
     mqttClient.on("connect", () => {
-      console.log("✅ MQTT Connected");
+      console.log("✅ MQTT đã kết nối");
       // Subscribe vào topic dạng pattern để nghe tất cả device
       mqttClient.subscribe("+/sensor", (err) => {
         if (!err) {
-          console.log(`📡 Subscribed to get records`);
+          console.log(`📡 Đã đăng ký nhận dữ liệu`);
         }
       });
     });
@@ -24,7 +24,7 @@ export const MqttController = {
       try {
         const message_content = JSON.parse(message.toString());
 
-        console.log(`📩 Received data from ${esp_id}:`, message_content);
+        console.log(`📩 Nhận dữ liệu từ ${esp_id}:`, message_content);
 
         const { data: binding, error } = await EspServices.findByID(esp_id);
 
@@ -44,18 +44,18 @@ export const MqttController = {
         const result = await SensorServices.insertRecord(payload)
 
         if (result.error) throw error;
-        console.log(`✅ Data saved for User ${binding.user_id}`);
+        console.log(`✅ Dữ liệu đã lưu cho người dùng ${binding.user_id}`);
       } catch(e) {
-        console.error("❌ Error processing MQTT message:", e);
+        console.error("❌ Lỗi xử lý tin nhắn MQTT:", e);
       }
     });
 
     mqttClient.on("error", (err) => {
-      console.error("MQTT error:", err.message);
+      console.error("Lỗi MQTT:", err.message);
     });
 
     mqttClient.on("reconnect", () => {
-      console.log("MQTT reconnecting...");
+      console.log("MQTT đang kết nối lại...");
     });
   },
 

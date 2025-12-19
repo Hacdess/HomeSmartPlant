@@ -7,14 +7,14 @@ export const SensorControllers = {
   getLimit: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("Không có người dùng nào được lưu"));
 
       const { data, error } = await SensorServices.getLimitByID(id);
 
       if (error) throw error;
 
       const {user_id, ...rest} = data;
-      return res.status(200).json(successResponse(rest, "Get record's limit successfully"));
+      return res.status(200).json(successResponse(rest, "Lấy ngưỡng sensor thành công"));
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
@@ -24,7 +24,7 @@ export const SensorControllers = {
   updateLimit: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("Không có người dùng nào được lưu"));
 
       const { humid_max, humid_min, light_max, light_min, soil_max, soil_min, temp_max, temp_min, water_level_max, water_level_min} = req.body;
 
@@ -46,7 +46,7 @@ export const SensorControllers = {
 
       if (result.error) throw result.error;
 
-      return res.status(200).json(successResponse(null, "Update record's limit successfully"));
+      return res.status(200).json(successResponse(null, "Cập nhật ngưỡng sensor thành công"));
 
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
@@ -56,13 +56,13 @@ export const SensorControllers = {
   getAll: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("Không có người dùng nào được lưu"));
 
       const { data, error } = await SensorServices.getAllRecordsByID(id);
 
       if (error) throw error;
       
-      return res.status(200).json(successResponse(data.map(({ user_id, rec_id, ...rest }) => rest), "Get all records successfully"));
+      return res.status(200).json(successResponse(data.map(({ user_id, rec_id, ...rest }) => rest), "Lấy tất cả sensors record thành công"));
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
     }
@@ -71,16 +71,16 @@ export const SensorControllers = {
   getLatest: async (req: Request, res: Response) => {
     try {
       const id = res.locals.user.user_id;
-      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      if (!id) return res.status(404).json(errorResponse("Không có người dùng nào được lưu"));
 
       const { data, error } = await SensorServices.getLatestRecordByID(id);
 
       if (error) throw error;
 
-      if (!data) return res.status(400).json(errorResponse("Lấy bản ghi mới nhất thất bại"))
+      if (!data) return res.status(400).json(errorResponse("Lấy record mới nhất thất bại"))
       
       const {user_id, rec_id, ...rest} = data;
-      return res.status(200).json(successResponse(rest, "Get latest record successfully"));
+      return res.status(200).json(successResponse(rest, "Lấy record mới nhất thành công"));
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
     }
