@@ -15,7 +15,6 @@ export default function SignIn() {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm({
     resolver: zodResolver(SignInSchema)
   })
@@ -61,35 +60,6 @@ export default function SignIn() {
     } finally {
     }
   }
-
-
-
-  // const { username, login } = useAuth();
-  // const [name, setName] = useState("");
-
-  // if (username) return <Navigate to="/pages/dashboard" />;
-
-  // return (
-  //     <input
-  //       value={name}
-  //       onChange={(e) => setName(e.target.value)}
-  //       className="border p-2 mb-4 w-64"
-  //       placeholder="Nhập username"
-  //     />
-  //     <button
-  //       onClick={() => login(name)}
-  //       className="bg-green-600 text-foreground px-4 py-2 rounded"
-  //     >
-  //       Đăng nhập
-  //     </button>
-
-  //     <p className="mt-3">
-  //       Chưa có tài khoản?{" "}
-  //       <Link className="text-green-600 underline" to="/pages/SignUp">
-  //         Đăng ký
-  //       </Link>
-  //     </p>
-  // );
 
   return (
     <div className="min-h-screen bg-background flex flex-col gap-10 items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-background via-background to-primary/20">

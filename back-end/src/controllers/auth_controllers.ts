@@ -7,6 +7,7 @@ import UserServices from "../services/user_services";
 import { error } from "console";
 import { LogServices, type supabaseLog } from "../services/log_services";
 import { MailServices } from "../services/email_services";
+import { EspServices } from "../services/esp_services";
 
 export const AuthControllers = {
   signUp: async (req: Request, res: Response) => {
@@ -102,6 +103,11 @@ export const AuthControllers = {
 
   signOut: async (req: Request, res: Response) => {
     try {
+      const id = res.locals.user.user_id;
+      if (!id) return res.status(404).json(errorResponse("No user stored"));
+      
+      await EspServices.deleteByID(id);
+      
       const cookies = req.cookies;
       for (let cookie in cookies) {
         res.cookie(cookie, '', {

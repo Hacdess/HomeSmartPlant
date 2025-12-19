@@ -2,7 +2,6 @@ import { LeafIcon, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect } from "react";
-import { set } from "zod";
 
 export default function Header() {
   const { user, setUser } = useAuth()
@@ -23,7 +22,8 @@ export default function Header() {
         setUser({
           full_name: data.data.user_id,
           user_name: data.data.user_name,
-          email: data.data.email
+          email: data.data.email,
+          notify: true
         })
       }
     } catch(e) {

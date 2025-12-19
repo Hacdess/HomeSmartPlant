@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
-import { useEffect
+import { useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext"
+import AddDeviceForm from "../components/Dashboard/DeviceForm";
 
- } from "react";
 export default function Homepage()  {
+  const { user } = useAuth();
 
   useEffect(() => {
     document.title = "Smart Plant";
@@ -13,9 +15,13 @@ export default function Homepage()  {
       <div className="md:w-1/2 flex flex-col justify-center gap-6">
         <h1 className="text-4xl font-bold">Hệ thống tưới và chiếu sáng thông minh</h1>
         <h4 >Giám sát và điều khiển vườn cây của bạn từ xa. Tự động tưới nước, điều chỉnh ánh sáng và theo dõi sức khỏe cây trồng theo thời gian thực.</h4>
-        <Link to="/dashboard" className="inline-block text-center bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition-colors w-max">
-          Thử ngay
-        </Link>
+        {
+          user
+          ? <AddDeviceForm/>
+          : <Link to="/sign-up" className="inline-block text-center bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition-colors w-max">
+            Thử ngay
+          </Link>
+        }
       </div>
       <div className="md:w-1/2">
         <img 

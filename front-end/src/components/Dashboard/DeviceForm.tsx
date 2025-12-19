@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function AddDeviceForm () {
   const [espId, setEspId] = useState('');
   const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -15,7 +17,7 @@ export default function AddDeviceForm () {
 
     try {
       // Gọi API Backend
-      const response = await fetch('/api/device/bind', {
+      const response = await fetch('/api/esp/bind', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -37,13 +39,14 @@ export default function AddDeviceForm () {
       
       // Tự động tắt thông báo sau 3s
       setTimeout(() => {
-          setStatus('idle');
-          setMessage('');
-      }, 3000);
-
+        setStatus('idle');
+        setMessage('');
+        navigate("/dashboard")
+      }, 3000);      
     } catch (error: any) {
       setStatus('error');
       setMessage(error.message);
+    } finally {
     }
   };
 
@@ -52,12 +55,12 @@ export default function AddDeviceForm () {
       <div className="p-8">
         <div className="flex items-center gap-2 mb-4">
           {/* Icon SVG đơn giản */}
-          <div className="p-2 bg-blue-100 rounded-full text-blue-600">
+          <div className="p-2 bg-green-500 rounded-full text-white">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-800">Add new device</h2>
+          <h2 className="text-xl font-bold text-gray-800">Kết nối ESP</h2>
         </div>
         
         <p className="text-gray-500 mb-6 text-sm">
@@ -75,7 +78,7 @@ export default function AddDeviceForm () {
               value={espId}
               onChange={(e) => setEspId(e.target.value)}
               placeholder="Ví dụ: esp32_1307557"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="text-black w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               disabled={status === 'loading'}
             />
           </div>

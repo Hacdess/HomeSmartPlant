@@ -51,7 +51,7 @@ export default function Gauge ({ title, value, min, max, unit, onSave } : GaugeP
       <h1 className="text-slate-400 text-xl text-sm font-medium mb-1">{title} ({unit})</h1>
 
       {/* Gauge Library */}
-      <div className=" max-w-[250px]">
+      <div className="w-[300px] md:w-[220px]">
         <GaugeComponent 
           marginInPercent={0.05}
           type="radial"
@@ -94,14 +94,14 @@ export default function Gauge ({ title, value, min, max, unit, onSave } : GaugeP
               ],
               defaultTickValueConfig: { 
                 formatTextValue: (val: any) => Math.round(val).toString(),
-                style: { fontSize: 13, fill: '#64748b', fontWeight: "bold" } 
+                style: { fontSize: 13, fill: '#64748b'} 
               }
             },
           }}
         />
       </div>
       {/* Footer Info (Optional) */}
-      <div className="mt-2 flex items-center gap-2 text-xs">
+      <div className="mt-2 flex items-end gap-2 text-medium md:text-xs">
         <div className="flex flex-col gap-1">
           <label className="text-slate-500">Min</label>
           <input
