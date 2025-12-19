@@ -39,7 +39,9 @@ export const AuthControllers = {
 
       if (result.error) throw error
 
-      res.status(201).json(successResponse(result.data, "Signed up successfully"));
+      await MailServices.sendAlert(email, "Bạn mới đăng ký SmartPlant");
+
+      return res.status(201).json(successResponse(result.data, "Signed up successfully"));
     
     } catch(e: any) {
       if (e instanceof z.ZodError) {
@@ -69,7 +71,7 @@ export const AuthControllers = {
       }
       const token = await AuthServices.generateToken(payload)
 
-      await MailServices.sendAlert("nguyenhuuanhtri866@gmail.com", "TKin mới đăng nhập");
+      await MailServices.sendAlert(email, "Bạn mới đăng nhập SmartPlant");
 
       const cookieOptions = {
         httpOnly: true, // Quan trọng: JS không đọc được (chống XSS)

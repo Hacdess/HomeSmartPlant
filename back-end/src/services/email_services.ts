@@ -6,8 +6,8 @@ export const MailServices = {
       await transporter.sendMail({
         from: '"HomeSmart System" <no-reply@homesmart.com>',
         to: toEmail, 
-        subject: "🚨 HOMESMART WARNING",
-        html: `<h3>WARNING:</h3><p>${content}</p>`,
+        subject: "🚨 SMART PLANT",
+        html: `<h3>${content}</h3>`,
       });
       console.log("✅ Email sent successfully");
     } catch (error) {

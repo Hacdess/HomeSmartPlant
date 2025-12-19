@@ -7,7 +7,6 @@ import LogTable from "../components/Dashboard/LogTable";
 import type { DeviceData } from "src/types/outDevices.type";
 import type { LogData } from "src/types/logs.type";
 import type { SensorRecord, SensorLimit } from "src/types/sensors.type";
-import AddDeviceForm from "../components/Dashboard/DeviceForm";
 
 // format date dạng: HH:MM:SS DD/MM/YYYY
 export const formatDateTime = (inputDate: string): string => {
@@ -245,7 +244,7 @@ export default function Dashboard() {
 
       {/* Title */}
       <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-8">Dashboard & Controller</h1>
+        <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
       </div>
 
       {/* 5 Gauges */}
