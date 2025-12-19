@@ -16,7 +16,7 @@ export default function InputField <T extends FieldValues> ({
 
   return(
     <div className="mb-4">
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={id} className="block text-sm font-medium text-foreground-700 mb-1">
         {label}
       </label>
       <input

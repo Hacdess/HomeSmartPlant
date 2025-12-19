@@ -53,7 +53,7 @@ export default function Header() {
   };
 
   return(
-    <header className="flex flex-row justify-between mx-auto max-w-5xl p-4 sm:p-6 lg: p-8">
+    <header className="flex flex-row justify-between mx-auto p-4 border-b border-border ">
       <Link to={"/"} className="flex items-center gap-2">
         <LeafIcon className="text-primary" />
         <h1 className="text-font text-xl text-primary"> SmartPlant</h1>
@@ -74,10 +74,10 @@ export default function Header() {
           </>
           : <>
             <Link to="sign-in" className="text-muted-foreground hover:text-green-600">
-                Đăng nhập
+                Sign In
             </Link>
             <Link to="/sign-up" className="text-foreground bg-green-600 px-4 py-2 rounded hover:bg-green-700">
-                Đăng ký
+                Sign Up
             </Link>
           </>
         }
