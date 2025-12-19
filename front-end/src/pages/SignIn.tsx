@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SignInSchema, type SignInRequest } from "@shared/auth";
 import InputField from "../components/Auth/InputFields";
 import { Leaf } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
   
 export default function SignIn() {
   const [isLoading, setIsLoading] = useState(false);

@@ -1,18 +1,85 @@
-import { Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { Navigate, useNavigate } from "react-router-dom"; 
 import { User, LogOut } from "lucide-react";
-import { useEffect } from "react";
-// import { create } from "node_modules/axios/index.d.cts";
+import { useEffect, useState } from "react";
+
+type UserProfile = { // back-end/src/types/database.typs.ts
+  user_id: string;
+  full_name: string;
+  user_name: string;
+  email: string;
+  phone: string;
+  created_at: string | null;
+  updated_at: string | null;
+};
 
 const Profile = () => {
-  const { user, setUser } = useAuth();
   const navigate = useNavigate();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUser = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch("/api/auth/profile", {
+        method: "GET",
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch user profile");
+      }
+
+      if (data.isSuccess && data.data) {
+        setUser(data.data);
+      } else {
+        throw new Error(data.message || "Failed to load profile");
+      }
+    } catch (e) {
+      console.error("Error fetching user profile:", e);
+      setError(e instanceof Error ? e.message : "Failed to load profile");
+      // Redirect to sign-in if unauthorized
+      if (e instanceof Error && (e.message.includes("401") || e.message.includes("Unauthorized"))) {
+        navigate('/sign-in');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     document.title = "Profile - SmartPlant";
+    fetchUser();
   }, []);
 
-  if (!user) return <Navigate to="/" />;
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4 flex justify-center items-center min-h-[400px]">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <div className="bg-destructive/10 border border-destructive rounded-lg p-6 text-center">
+          <p className="text-destructive mb-4">{error || "Không thể tải thông tin người dùng"}</p>
+          <button
+            onClick={() => navigate('/sign-in')}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2.5 rounded-lg font-medium transition-colors duration-200"
+          >
+            Go to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogout = async () => {
     try {
