@@ -21,6 +21,17 @@ export default function Gauge ({ title, value, min, max, unit, onSave } : GaugeP
     setEditMax(max.toString());
   }, [min, max]);
 
+  const delta = max - min;
+  // Xử lý edge case khi delta <= 0 để tránh lỗi render
+  const safeDelta = delta <= 0 ? 100 : delta;
+  
+  const gaugeMin = 0
+  const gaugeMax = (() => {
+    if (unit === "%" || unit === "Lux") return 100;
+    if (unit === "°C") return 50;
+    return 1600;
+  })()
+
   const handleSave = () => {
     const numMin = parseFloat(editMin);
     const numMax = parseFloat(editMax);
@@ -35,15 +46,19 @@ export default function Gauge ({ title, value, min, max, unit, onSave } : GaugeP
       alert("Giá trị Min phải nhỏ hơn Max!");
       return;
     }
+
+    if (numMin < gaugeMin) {
+      alert("Giá trị Min phải lớn hơn hoặc bằng " + gaugeMin.toString());
+      return;
+    }
+
+    if (numMax > gaugeMax) {
+      alert("Giá trị Max phải nhỏ hơn hoặc bằng " + gaugeMax.toString());
+      return;
+    }
+
     onSave(numMin, numMax);
   };
-
-  const delta = max - min;
-  // Xử lý edge case khi delta <= 0 để tránh lỗi render
-  const safeDelta = delta <= 0 ? 100 : delta;
-  
-  const gaugeMin = unit ==="%" ? 0 : min - safeDelta * 0.2;
-  const gaugeMax = unit ==="%" ? 100 : max + safeDelta * 0.2;
 
   return (
     <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700 flex flex-col items-center justify-center">
@@ -82,7 +97,7 @@ export default function Gauge ({ title, value, min, max, unit, onSave } : GaugeP
             valueLabel: { 
               hide: false ,
               style: {
-                fontSize: 40,
+                fontSize: 30,
                 fontWeight: "Bold",
               }
             },

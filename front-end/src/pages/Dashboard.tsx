@@ -162,10 +162,8 @@ export default function Dashboard() {
   const updateLimitAndSave = async (updatedFields: Partial<SensorLimit>) => {
     if (!sensorLimit) return;
 
-    // 1. Tạo object limit mới
     const newLimit = { ...sensorLimit, ...updatedFields };
 
-    // 2. Cập nhật UI ngay lập tức (Optimistic Update)
     setSensorLimit(newLimit);
 
     try {
@@ -250,9 +248,9 @@ export default function Dashboard() {
         <Gauge
           title="Ánh sáng"
           value={sensorRecords?.[0]?.light ?? 0}
-          unit=" Lux"
+          unit="Lux"
           min={sensorLimit?.light_min ?? 0}
-          max={sensorLimit?.light_max ?? 3000}
+          max={sensorLimit?.light_max ?? 100}
           onSave={(newMin, newMax) => 
             updateLimitAndSave({ light_min: newMin, light_max: newMax })
           }

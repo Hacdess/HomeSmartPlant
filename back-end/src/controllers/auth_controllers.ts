@@ -136,7 +136,7 @@ export const AuthControllers = {
       
       const esp_id = await EspServices.findByUserID(user.data.user_id);
 
-      let return_data: any = {...user.data, notify: true, is_auto: false};
+      let return_data: any = {...user.data, is_auto: false};
 
       if (esp_id && esp_id.data)
         return_data = {... return_data, esp_id: esp_id.data.esp_id}

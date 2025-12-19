@@ -1,7 +1,6 @@
 import { SensorLimit, SensorServices } from "../services/sensor_services";
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
-import { hu } from "zod/v4/locales";
 
 export const SensorControllers = {
   getLimit: async (req: Request, res: Response) => {
@@ -79,8 +78,27 @@ export const SensorControllers = {
 
       if (!data) return res.status(400).json(errorResponse("Lấy bản ghi mới nhất thất bại"))
       
-      const {user_id, rec_id, ...rest} = data;
-      return res.status(200).json(successResponse(rest, "Get latest record successfully"));
+      const {user_id, rec_id, ...record} = data;
+
+      const alerts = [];
+
+      const { data: limit,  error: error1} = await SensorServices.getLimitByID(user_id);
+      
+      if (!error1 && limit) {
+        if (record.humid < limit.humid_min || record.humid > limit.humid_max)
+          alerts.push(`Độ ấm không khí vượt ngưỡng (${record.humid})`)
+        if (record.temperature < limit.temp_min || record.temperature > limit.temp_max)
+          alerts.push(`Nhiệt độ không khí vượt ngưỡng (${record.temperature})`)
+        if (record.soil_moisture < limit.soil_min || record.soil_moisture > limit.soil_max)
+          alerts.push(`Độ ấm đất vượt ngưỡng (${record.soil_moisture})`)
+        if (record.light < limit.light_min || record.light > limit.light_max)
+          alerts.push(`Ánh sáng vượt ngưỡng (${record.light})`)
+        if (record.water_level < limit.water_level_min|| record.water_level > limit.water_level_max)
+          alerts.push(`Mực nước vượt ngưỡng (${record.water_level})`)
+      }
+
+
+      return res.status(200).json(successResponse(record, "Get latest record successfully"));
     } catch(e: any) {
       return res.status(500).json(errorResponse(e.message));
     }
