@@ -53,9 +53,8 @@ export default function Chart({ data }: {data : SensorRecord[]}) {
     
     // Đảo ngược mảng nếu dữ liệu từ API là mới nhất trước (descending)
     // Biểu đồ dòng cần vẽ từ trái qua phải (cũ -> mới)
-    const sortedData = [...data].reverse(); 
 
-    return sortedData.map(record => {
+    return data.map(record => {
       const dateObj = record.recorded_at ? new Date(record.recorded_at) : new Date();
       return {
         ...record,

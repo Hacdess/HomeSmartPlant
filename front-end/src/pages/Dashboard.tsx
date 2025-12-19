@@ -1,6 +1,6 @@
 // DASHBOARD: PAGE CHINH, HIEN THI THONG CAC SENSOR
 import { useState, useEffect } from "react";
-import { Gauge } from "../components/Dashboard/Gauge";
+import Gauge from "../components/Dashboard/Gauge"
 import DeviceController from "../components/Dashboard/DeviceController";
 import Chart from "../components/Dashboard/Chart";
 import LogTable from "../components/Dashboard/LogTable";
@@ -174,24 +174,35 @@ export default function Dashboard() {
   }, []);
 
   // 3. user actions handle
-  const handleUpdateSensorLimits = async () => {
-    try {
+  const updateLimitAndSave = async (updatedFields: Partial<SensorLimit>) => {
+    if (!sensorLimit) return;
 
+    // 1. Tạo object limit mới
+    const newLimit = { ...sensorLimit, ...updatedFields };
+
+    // 2. Cập nhật UI ngay lập tức (Optimistic Update)
+    setSensorLimit(newLimit);
+
+    try {
+      // 3. Gọi API Save
       const response = await fetch('/api/sensors/limit', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sensorLimit),
+        body: JSON.stringify(newLimit),
       });
+
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Update failed');
-      if (data.isSuccess) {
-        console.log('Limits updated successfully');
+      if (!response.ok || !data.isSuccess) {
+        throw new Error(data.message || 'Update failed');
       }
-
-
+      alert("Update success")
+      console.log('Update success');
+      // toast.success("Đã cập nhật ngưỡng!"); 
     } catch (e) {
       console.error('Failed to update sensor limits:', e);
-      alert('Failed to update sensor limits');
+      // Nếu lỗi, revert lại state cũ (nếu muốn kỹ tính hơn)
+      alert('Lỗi khi lưu cấu hình!');
+      fetchSensorLimit(); // Load lại data gốc
     }
   };
 
@@ -398,41 +409,64 @@ export default function Dashboard() {
           }
         /> */}
 
-<Gauge
-    title="Nhiệt độ"
-    value={sensorRecords?.[0]?.temperature ?? 0}
-    unit="°C"
-    // Lấy giới hạn từ API, nếu chưa có thì dùng mặc định 20-35
-    min={sensorLimit?.temp_min ?? 20}
-    max={sensorLimit?.temp_max ?? 35}
-  />
+        <Gauge
+          title="Nhiệt độ"
+          value={sensorRecords?.[0]?.temperature ?? 0}
+          unit="°C"
+          // Lấy giới hạn từ API, nếu chưa có thì dùng mặc định 20-35
+          min={sensorLimit?.temp_min ?? 20}
+          max={sensorLimit?.temp_max ?? 35}
+          onSave={(newMin, newMax) => 
+            updateLimitAndSave({ temp_min: newMin, temp_max: newMax })
+          }
+        />
 
-  {/* Humidity Gauge */}
-  <Gauge
-    title="Độ ẩm không khí"
-    value={sensorRecords?.[0]?.humid ?? 0}
-    unit="%"
-    min={sensorLimit?.humid_min ?? 40}
-    max={sensorLimit?.humid_max ?? 80}
-  />
+        {/* Humidity Gauge */}
+        <Gauge
+          title="Độ ẩm không khí"
+          value={sensorRecords?.[0]?.humid ?? 0}
+          unit="%"
+          min={sensorLimit?.humid_min ?? 40}
+          max={sensorLimit?.humid_max ?? 80}
+          onSave={(newMin, newMax) => 
+            updateLimitAndSave({ humid_min: newMin, humid_max: newMax })
+          }
+        />
 
-  {/* Light Gauge */}
-  <Gauge
-    title="Ánh sáng"
-    value={sensorRecords?.[0]?.light ?? 0}
-    unit=" Lux"
-    min={sensorLimit?.light_min ?? 0}
-    max={sensorLimit?.light_max ?? 3000}
-  />
+        {/* Light Gauge */}
+        <Gauge
+          title="Ánh sáng"
+          value={sensorRecords?.[0]?.light ?? 0}
+          unit=" Lux"
+          min={sensorLimit?.light_min ?? 0}
+          max={sensorLimit?.light_max ?? 3000}
+          onSave={(newMin, newMax) => 
+            updateLimitAndSave({ light_min: newMin, light_max: newMax })
+          }
+        />
   
-  {/* Soil Moisture Gauge */}
-   <Gauge
-    title="Độ ẩm đất"
-    value={sensorRecords?.[0]?.soil_moisture ?? 0}
-    unit="%"
-    min={sensorLimit?.soil_min ?? 30}
-    max={sensorLimit?.soil_max ?? 70}
-  />
+        {/* Soil Moisture Gauge */}
+        <Gauge
+          title="Độ ẩm đất"
+          value={sensorRecords?.[0]?.soil_moisture ?? 0}
+          unit="%"
+          min={sensorLimit?.soil_min ?? 30}
+          max={sensorLimit?.soil_max ?? 70}
+          onSave={(newMin, newMax) => 
+            updateLimitAndSave({ soil_min: newMin, soil_max: newMax })
+          }
+        />
+
+        <Gauge
+          title="Mực nước"
+          value={sensorRecords?.[0]?.water_level ?? 0}
+          unit="mm"
+          min={sensorLimit?.water_level_min ?? 0}
+          max={sensorLimit?.water_level_max ?? 1600}
+          onSave={(newMin, newMax) => 
+            updateLimitAndSave({ water_level_min: newMin, water_level_max: newMax })
+          }
+        />
       </div>
 
       
