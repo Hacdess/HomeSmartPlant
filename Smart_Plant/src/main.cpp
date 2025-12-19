@@ -7,6 +7,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <ArduinoJson.h>
+#include <Preferences.h>
 
 #define DHTPIN 4
 #define DHTTYPE DHT11
@@ -16,14 +17,37 @@
 #define RAIN_PIN 36
 
 #define BUTTON_PIN 5
-#define BUZZER_PIN 18
+
 #define RELAY_PUMP 19   // Active HIGH
 #define RELAY_LIGHT 23   // Relay for Light (Active HIGH)
+
+byte tempIcon[8] = {
+  B00100,
+  B01010,
+  B01010,
+  B01010,
+  B01110,
+  B11111,
+  B11111,
+  B01110
+};
+
+byte humIcon[8] = {
+  B00100,
+  B00100,
+  B01010,
+  B01010,
+  B10001,
+  B10001,
+  B10001,
+  B01110
+};
 
 
 DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 bool isLCDOn = false;
+Preferences preferences;
 
 const char* mqttServer = "ae56774440b544af8d633adb3b5331af.s1.eu.hivemq.cloud";
 const int mqttPort = 8883;
@@ -38,56 +62,22 @@ bool isShowMenu = true;
 bool isReuse = false;
 int lastTime = 0;
 int lastButtonState = LOW;
-bool isAgree = false;
 
 String ssid = "";
 String pass = "";
 String userID = "";
-std::vector<String> seenBSSIDs;
-
-const char* root_ca =
-"-----BEGIN CERTIFICATE-----\n"
-"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\n"
-"-----END CERTIFICATE-----\n";
+std::vector<String> seenSSIDs;
 
 WiFiClientSecure secureClient;
 PubSubClient client(secureClient);
 
 // Reading sensors functions
-int readLight() { return analogRead(LIGHT_PIN); }
-int readSoil()  { return map(analogRead(SOIL_PIN), 0, 4095, 0, 100); }
-int readRain()  { return analogRead(RAIN_PIN); }
+int readLight() { return map(analogRead(LIGHT_PIN), 0, 4095, 100, 0); } // %
+int readSoil()  { return map(analogRead(SOIL_PIN), 0, 4095, 0, 100); } // %
+int readRain()  { return map(analogRead(RAIN_PIN), 0, 2300, 0, 4000); } // mm
 
-float readTemp() { return dht.readTemperature(); }
-float readHum()  { return dht.readHumidity(); }
+float readTemp() { return dht.readTemperature(); } // °C
+float readHum()  { return dht.readHumidity(); }   // %
 
 String readLineEcho() {
   String input = "";
@@ -110,14 +100,14 @@ String readLineEcho() {
 }
 
 bool isSeen(String bssid) {
-  for (auto &s : seenBSSIDs) {
+  for (auto &s : seenSSIDs) {
     if (s == bssid) return true;
   }
   return false;
 }
 
 void scanWiFi() {
-  seenBSSIDs.clear();
+  seenSSIDs.clear();
   Serial.println("\nScanning WiFi networks...");
   int n = WiFi.scanNetworks();
   int count = 0;
@@ -129,7 +119,7 @@ void scanWiFi() {
     for (int i = 0; i < limit; i++) {
       String bssid = WiFi.SSID(i).c_str();
       if (!isSeen(bssid)) {
-        seenBSSIDs.push_back(bssid);
+        seenSSIDs.push_back(bssid);
       }
       else continue;
 
@@ -143,7 +133,14 @@ void scanWiFi() {
 
 }
 
-void connectWiFiHelper(String ssid, String pass) {
+void saveWiFi(const String& s, const String& p) {
+  preferences.begin("wifi", false);
+  preferences.putString("ssid", s);
+  preferences.putString("pass", p);
+  preferences.end();
+}
+
+bool connectWiFiHelper(String ssid, String pass) {
   Serial.print("\nConnecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid.c_str(), pass.c_str());  
@@ -156,18 +153,29 @@ void connectWiFiHelper(String ssid, String pass) {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nWiFi connected!");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    saveWiFi(ssid, pass);
+    return true;
   } else {
     Serial.println("\nWiFi connection failed.");
     WiFi.disconnect(true);
     delay(1000);
   }
+  return false;
+}
+
+bool isAutoConnect() {
+  preferences.begin("wifi", true);
+  ssid = preferences.getString("ssid", "");
+  pass = preferences.getString("pass", "");
+  preferences.end();
+
+  return connectWiFiHelper(ssid, pass);
 }
 
 void connectWiFi() {
   String oldSSID = ssid;
   String oldPass = pass;
+  
   ssid = "";
   pass = "";
   if (WiFi.status() == WL_CONNECTED) {
@@ -178,10 +186,9 @@ void connectWiFi() {
 
   Serial.print("\nEnter Password: ");
   pass = readLineEcho();
-
-  connectWiFiHelper(ssid, pass);
   
-  if (isReuse && WiFi.status() != WL_CONNECTED) {
+  if (!connectWiFiHelper(ssid, pass) && isReuse) {
+    isReuse = false;
     Serial.println("\nReusing old WiFi credentials...");
     connectWiFiHelper(oldSSID, oldPass);
     oldSSID = "";
@@ -191,35 +198,10 @@ void connectWiFi() {
   return; 
 }
 
-void disConnectWifi(){
-  if (WiFi.status() == WL_CONNECTED) {
-    ssid = "";
-    pass = "";
-    WiFi.disconnect(true);
-    Serial.println("\nWiFi disconnected successfully!");
-    delay(1000);
-  } else {
-    Serial.println("\nWiFi is not connected.");
-  }
-  return;
-}
-
-void runDevices() {
-  Serial.println("\nRunning devices...");
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.print("Current WiFi: ");
-    Serial.println(WiFi.SSID());
-  } else {
-    Serial.println("Current WiFi: Not connected => Can not connect to MQTT broker, only read sensor and display on LCD.");
-    isAgree = true;
-    return;
-  }
-}
 
 void connectMQTT() {
   while (!client.connected()) {
-    Serial.print("Connecting MQTT... ");
+    Serial.print("\nConnecting MQTT... ");
 
     if (client.connect(deviceID, mqttUser, mqttPass)) {
       Serial.println("connected!");
@@ -276,8 +258,7 @@ void showMenu() {
   Serial.println("\n========== MENU ==========");
   Serial.println("1. Detect WiFi networks");
   Serial.println("2. Connect to WiFi");
-  Serial.println("3. Disconnect WiFi");
-  Serial.println("4. Run devices");
+  Serial.println("3. Run devices");
   if (WiFi.status() == WL_CONNECTED) {
     Serial.print("Current WiFi: ");
     Serial.println(WiFi.SSID());
@@ -288,21 +269,34 @@ void showMenu() {
   Serial.print("Select option and press ENTER: ");
 }
 
-
 void updateLCD() {
   if (!isLCDOn) return;
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("T:");
-  lcd.print(readTemp());
-  lcd.print(" H:");
-  lcd.print(readHum());
+  lcd.write(byte(0));
+  lcd.print(" Temp: ");
+  lcd.print(readTemp(), 1);
+  lcd.print((char)223); // degree symbol
+  lcd.print("C");
 
   lcd.setCursor(0, 1);
-  lcd.print("Soil:");
-  lcd.print(readSoil());
-  lcd.print(" R:");
-  lcd.print(readRain());
+  lcd.write(byte(1)); // humidity icon
+  lcd.print(" Hum : ");
+  lcd.print(readHum(), 0);
+  lcd.print("%");
+}
+
+// Use Ctrl + W to stop and open Menu
+void detectControlW()
+{
+  if (Serial.available()) {
+    char c = Serial.read();
+    if (c == 23) { // Ctrl + W
+      isShowMenu = true;
+      isRunning = false;
+      Serial.println("\nReturning to Menu...");
+    }
+  }
 }
 
 void setup() {
@@ -311,9 +305,10 @@ void setup() {
 
   dht.begin();
   lcd.init();
+  lcd.createChar(0, tempIcon);  // icon 0
+  lcd.createChar(1, humIcon);   // icon 1
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(BUZZER_PIN, OUTPUT);
   pinMode(RELAY_PUMP, OUTPUT);
   digitalWrite(RELAY_PUMP, LOW);
   pinMode(RELAY_LIGHT, OUTPUT);
@@ -322,19 +317,19 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.disconnect(true);
 
-  secureClient.setCACert(root_ca);
+  secureClient.setInsecure(); // Disable certificate validation for simplicity
   client.setServer(mqttServer, mqttPort);
   client.setCallback(mqttCallback);
+
+  if (isAutoConnect()) {
+    Serial.println("Auto connecting to saved WiFi...");
+    isShowMenu = false;
+    isRunning = true;
+  }
 }
 
-
 void loop() {
-  // Detect WiFi lost
-  if (WiFi.status() != WL_CONNECTED && !isShowMenu && !isAgree) {
-    Serial.println("\nWiFi disconnected!");
-    isShowMenu = true;
-    isRunning = false;
-  }
+  detectControlW();
 
   if (isShowMenu) {
     showMenu();
@@ -346,23 +341,34 @@ void loop() {
       connectWiFi();
     }
     else if (choice == "3") {
-      disConnectWifi();
-    }
-    else if (choice == "4") {
-      isShowMenu = false;
-      isRunning = true;
-      runDevices();
+      if (WiFi.status() == WL_CONNECTED) {
+          isShowMenu = false;
+          isRunning = true;
+      } 
+      else {
+        isAutoConnect();
+        Serial.println("\nWiFi is not connected.");
+      }
     }
     else {
       Serial.println("\nInvalid option.");
     }
   }
 
+  // Detect WiFi lost
+  if (WiFi.status() != WL_CONNECTED && !isShowMenu) {
+    if (client.connected()) {
+        client.disconnect();
+      }
+    secureClient.stop();
+    Serial.println("\nWiFi disconnected.");
+    isAutoConnect();
+  }
+
   if (isRunning) {
-    if (!isAgree)
-    {
-      client.loop();
+    if (WiFi.status() == WL_CONNECTED) {
       connectMQTT();
+      client.loop();
     }
 
     int currentTime = millis();
