@@ -76,6 +76,8 @@ export const SensorControllers = {
       const { data, error } = await SensorServices.getLatestRecordByID(id);
 
       if (error) throw error;
+
+      if (!data) return res.status(400).json(errorResponse("Lấy bản ghi mới nhất thất bại"))
       
       const {user_id, rec_id, ...rest} = data;
       return res.status(200).json(successResponse(rest, "Get latest record successfully"));
