@@ -22,14 +22,12 @@ export default function Gauge ({ title, value, min, max, unit, onSave } : GaugeP
   }, [min, max]);
 
   const delta = max - min;
-  // Xử lý edge case khi delta <= 0 để tránh lỗi render
-  const safeDelta = delta <= 0 ? 100 : delta;
   
   const gaugeMin = 0
-  const gaugeMax = (() => {
+  const gaugeMax = ( () => {
     if (unit === "%" || unit === "Lux") return 100;
     if (unit === "°C") return 50;
-    return 1600;
+    return 400;
   })()
 
   const handleSave = () => {
@@ -78,8 +76,8 @@ export default function Gauge ({ title, value, min, max, unit, onSave } : GaugeP
             colorArray: ['#EA4228', '#ffea00ff', '#5BE12C', '#ffea00ff', '#EA4228'], // Đỏ -> Xanh -> Đỏ
             subArcs: [
               { limit: min},
-              { limit: min + delta/ 4 },
-              { limit: min + delta * 0.75 },
+              { limit: min + delta / 4 },
+              { limit: max - delta / 4  },
               { limit: max},
               {},
             ],

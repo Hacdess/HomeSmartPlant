@@ -1,15 +1,12 @@
-import { MqttServices } from "../services/mqtt_services";
-import { Request, Response } from "express";
 import { mqttClient } from "../config/mqtt_config";
 import { EspServices } from "../services/esp_services";
 import { SensorServices } from "../services/sensor_services";
 import { type SensorRecord } from "../services/sensor_services";
 
 export const MqttController = {
-  // Hàm khởi chạy (gọi 1 lần ở index.ts)
   init() {
     mqttClient.on("connect", () => {
-      console.log("✅ MQTT đã kết nối");
+      console.log("MQTT đã kết nối");
       // Subscribe vào topic dạng pattern để nghe tất cả device
       mqttClient.subscribe("+/sensor", (err) => {
         if (!err) {
@@ -24,7 +21,7 @@ export const MqttController = {
       try {
         const message_content = JSON.parse(message.toString());
 
-        console.log(`📩 Nhận dữ liệu từ ${esp_id}:`, message_content);
+        console.log(` Nhận dữ liệu từ ${esp_id}:`, message_content);
 
         const { data: binding, error } = await EspServices.findByID(esp_id);
 
@@ -44,9 +41,8 @@ export const MqttController = {
         const result = await SensorServices.insertRecord(payload)
 
         if (result.error) throw error;
-        console.log(`✅ Dữ liệu đã lưu cho người dùng ${binding.user_id}`);
       } catch(e) {
-        console.error("❌ Lỗi xử lý tin nhắn MQTT:", e);
+        console.error("Lỗi xử lý tin nhắn MQTT:", e);
       }
     });
 
@@ -58,15 +54,4 @@ export const MqttController = {
       console.log("MQTT đang kết nối lại...");
     });
   },
-
-
-  // // API gọi hàm này để điều khiển
-  // togglePump: (req: Request, res: Response) => {
-  //   const { esp_id, status } = req.body; // status: "ON" | "OFF"
-    
-  //   // Gọi helper gửi lệnh
-  //   MqttServices.sendCommand(esp_id, "PUMP", status);
-    
-  //   res.json({ success: true, msg: "Đã gửi lệnh bơm" });
-  // }
 };

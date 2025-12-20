@@ -12,59 +12,15 @@ import { type SensorRecord } from '../../types/sensors.type';
 import { formatDateTime } from '../../pages/Dashboard';
 import { useMemo } from 'react';
 
-// interface ChartDataPoint {
-//   date: string;
-//   temperature: number;
-//   light: number;
-//   humidity: number;
-//   soilMoisture: number;
-//   waterLevel: number;
-// }
-
-// interface ChartProps {
-//   data: ChartDataPoint[];
-// }
-// Custom tooltip content
-// const CustomTooltip = ({ active, payload, label }: any) => {
-//   if (active && payload && payload.length) {
-//     return (
-//       <div className="bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-xl">
-//         <p className="text-slate-100 font-semibold mb-2">{label}</p>
-//         {payload.map((entry: any, index: number) => (
-//           <div key={index} className="flex items-center gap-2 text-sm">
-//             <div
-//               className="w-3 h-3 rounded-full"
-//               style={{ backgroundColor: entry.color }}
-//             />
-//             <span className="text-slate-300">
-//               {entry.name}: <span className="font-medium text-slate-100">{entry.value}</span>
-//             </span>
-//           </div>
-//         ))}
-//       </div>
-//     );
-//   }
-//   return null;
-// };
-
 export default function Chart({ data }: {data : SensorRecord[]}) {
   const chartData = useMemo(() => {
     if (!data) return [];
-    
-    // Đảo ngược mảng nếu dữ liệu từ API là mới nhất trước (descending)
-    // Biểu đồ dòng cần vẽ từ trái qua phải (cũ -> mới)
 
     return data.map(record => {
-      const dateObj = record.recorded_at ? new Date(record.recorded_at) : new Date();
+      const formatedDate = formatDateTime(record.recorded_at? record.recorded_at : new Date().toLocaleDateString());
       return {
         ...record,
-        // Tạo trường 'date' mà XAxis đang tìm kiếm
-        date: dateObj.toLocaleTimeString('vi-VN', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          day: '2-digit',
-          month: '2-digit'
-        }), // Kết quả ví dụ: "14:30 19/12"
+        date: formatedDate
       };
     });
   }, [data]);

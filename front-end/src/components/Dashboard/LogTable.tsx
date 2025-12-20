@@ -5,14 +5,12 @@ import { formatDateTime } from '../../pages/Dashboard';
 
 export default function LogTable({ logs }: {logs: LogData[]}) {
   const getTypeBadgeClass = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'warning':
+    switch (type) {
+      case 'WARNING':
         return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
-      case 'success':
+      case 'AUTHENTICATE':
         return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-      case 'error':
-        return 'bg-red-500/20 text-red-400 border border-red-500/30';
-      case 'info':
+      case 'DEVICE':
         return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
       default:
         return 'bg-slate-600 text-slate-300';

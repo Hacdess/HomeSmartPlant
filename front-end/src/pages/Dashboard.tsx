@@ -164,7 +164,7 @@ export default function Dashboard() {
         // Kiểm tra kỹ để tránh trùng lặp và lỗi mảng rỗng
           if (prevSensorRecords.length === 0) return [jsonResponse.data.data];
           if (prevSensorRecords[0].recorded_at !== jsonResponse.data.data.recorded_at)
-              return [jsonResponse.data.data, ...prevSensorRecords];
+              return [...prevSensorRecords, jsonResponse.data.data];
           return prevSensorRecords;
         });
       }
@@ -312,7 +312,7 @@ export default function Dashboard() {
 
         <Gauge
           title="Nhiệt độ"
-          value={sensorRecords?.[0]?.temperature ?? 0}
+          value={sensorRecords?.at(-1)?.temperature ?? 0}
           unit="°C"
           // Lấy giới hạn từ API, nếu chưa có thì dùng mặc định 20-35
           min={sensorLimit?.temp_min ?? 20}
@@ -325,7 +325,7 @@ export default function Dashboard() {
         {/* Humidity Gauge */}
         <Gauge
           title="Độ ẩm không khí"
-          value={sensorRecords?.[0]?.humid ?? 0}
+          value={sensorRecords?.at(-1)?.humid ?? 0}
           unit="%"
           min={sensorLimit?.humid_min ?? 40}
           max={sensorLimit?.humid_max ?? 80}
@@ -337,7 +337,7 @@ export default function Dashboard() {
         {/* Light Gauge */}
         <Gauge
           title="Ánh sáng"
-          value={sensorRecords?.[0]?.light ?? 0}
+          value={sensorRecords?.at(-1)?.light ?? 0}
           unit="%"
           min={sensorLimit?.light_min ?? 0}
           max={sensorLimit?.light_max ?? 100}
@@ -349,7 +349,7 @@ export default function Dashboard() {
         {/* Soil Moisture Gauge */}
         <Gauge
           title="Độ ẩm đất"
-          value={sensorRecords?.[0]?.soil_moisture ?? 0}
+          value={sensorRecords?.at(-1)?.soil_moisture ?? 0}
           unit="%"
           min={sensorLimit?.soil_min ?? 30}
           max={sensorLimit?.soil_max ?? 70}
@@ -360,10 +360,10 @@ export default function Dashboard() {
 
         <Gauge
           title="Mực nước"
-          value={sensorRecords?.[0]?.water_level ?? 0}
+          value={sensorRecords?.at(-1)?.water_level ?? 0}
           unit="mm"
           min={sensorLimit?.water_level_min ?? 0}
-          max={sensorLimit?.water_level_max ?? 1600}
+          max={sensorLimit?.water_level_max ?? 400}
           onSave={(newMin, newMax) => 
             updateLimitAndSave({ water_level_min: newMin, water_level_max: newMax })
           }

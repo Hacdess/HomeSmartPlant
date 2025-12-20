@@ -73,8 +73,8 @@ PubSubClient client(secureClient);
 
 // Reading sensors functions
 int readLight() { return map(analogRead(LIGHT_PIN), 0, 4095, 100, 0); } // %
-int readSoil()  { return map(analogRead(SOIL_PIN), 0, 4095, 0, 100); } // %
-int readRain()  { return map(analogRead(RAIN_PIN), 0, 2300, 0, 4000); } // mm
+int readSoil()  { return map(analogRead(SOIL_PIN), 0, 4095, 100, 0); } // %
+int readRain()  { return map(analogRead(RAIN_PIN), 0, 4095, 0, 400); } // mm
 
 float readTemp() { return dht.readTemperature(); } // °C
 float readHum()  { return dht.readHumidity(); }   // %
@@ -226,7 +226,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   DeserializationError error = deserializeJson(doc, msg);
 
   // --- Remote Pump Control ---
-  if (String(topic) == String(deviceID) + "/pump") {
+  if (String(topic) == String(deviceID) + "/PUMP") {
     if (doc["action"] == "ON")  digitalWrite(RELAY_PUMP, HIGH);
     if (doc["action"] == "OFF") digitalWrite(RELAY_PUMP, LOW);
   }
